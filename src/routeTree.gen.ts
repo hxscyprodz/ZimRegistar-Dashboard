@@ -9,38 +9,208 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppReportsRouteImport } from './routes/_app.reports'
+import { Route as AppPrintingCenterRouteImport } from './routes/_app.printing-center'
+import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppApprovedApplicationsRouteImport } from './routes/_app.approved-applications'
+import { Route as AppApplicationsNationalIdRouteImport } from './routes/_app.applications.national-id'
+import { Route as AppApplicationsDocumentRecoveryRouteImport } from './routes/_app.applications.document-recovery'
+import { Route as AppApplicationsBirthCertificatesRouteImport } from './routes/_app.applications.birth-certificates'
+import { Route as AppApplicationsNationalIdIdRouteImport } from './routes/_app.applications.national-id.$id'
+import { Route as AppApplicationsDocumentRecoveryIdRouteImport } from './routes/_app.applications.document-recovery.$id'
+import { Route as AppApplicationsBirthCertificatesIdRouteImport } from './routes/_app.applications.birth-certificates.$id'
 
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPrintingCenterRoute = AppPrintingCenterRouteImport.update({
+  id: '/printing-center',
+  path: '/printing-center',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppApprovedApplicationsRoute = AppApprovedApplicationsRouteImport.update({
+  id: '/approved-applications',
+  path: '/approved-applications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppApplicationsNationalIdRoute =
+  AppApplicationsNationalIdRouteImport.update({
+    id: '/applications/national-id',
+    path: '/applications/national-id',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppApplicationsDocumentRecoveryRoute =
+  AppApplicationsDocumentRecoveryRouteImport.update({
+    id: '/applications/document-recovery',
+    path: '/applications/document-recovery',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppApplicationsBirthCertificatesRoute =
+  AppApplicationsBirthCertificatesRouteImport.update({
+    id: '/applications/birth-certificates',
+    path: '/applications/birth-certificates',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppApplicationsNationalIdIdRoute =
+  AppApplicationsNationalIdIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AppApplicationsNationalIdRoute,
+  } as any)
+const AppApplicationsDocumentRecoveryIdRoute =
+  AppApplicationsDocumentRecoveryIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AppApplicationsDocumentRecoveryRoute,
+  } as any)
+const AppApplicationsBirthCertificatesIdRoute =
+  AppApplicationsBirthCertificatesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AppApplicationsBirthCertificatesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/approved-applications': typeof AppApprovedApplicationsRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/printing-center': typeof AppPrintingCenterRoute
+  '/reports': typeof AppReportsRoute
+  '/settings': typeof AppSettingsRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRouteWithChildren
+  '/applications/document-recovery': typeof AppApplicationsDocumentRecoveryRouteWithChildren
+  '/applications/national-id': typeof AppApplicationsNationalIdRouteWithChildren
+  '/applications/birth-certificates/$id': typeof AppApplicationsBirthCertificatesIdRoute
+  '/applications/document-recovery/$id': typeof AppApplicationsDocumentRecoveryIdRoute
+  '/applications/national-id/$id': typeof AppApplicationsNationalIdIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/approved-applications': typeof AppApprovedApplicationsRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/printing-center': typeof AppPrintingCenterRoute
+  '/reports': typeof AppReportsRoute
+  '/settings': typeof AppSettingsRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRouteWithChildren
+  '/applications/document-recovery': typeof AppApplicationsDocumentRecoveryRouteWithChildren
+  '/applications/national-id': typeof AppApplicationsNationalIdRouteWithChildren
+  '/applications/birth-certificates/$id': typeof AppApplicationsBirthCertificatesIdRoute
+  '/applications/document-recovery/$id': typeof AppApplicationsDocumentRecoveryIdRoute
+  '/applications/national-id/$id': typeof AppApplicationsNationalIdIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_app/approved-applications': typeof AppApprovedApplicationsRoute
+  '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/printing-center': typeof AppPrintingCenterRoute
+  '/_app/reports': typeof AppReportsRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/_app/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRouteWithChildren
+  '/_app/applications/document-recovery': typeof AppApplicationsDocumentRecoveryRouteWithChildren
+  '/_app/applications/national-id': typeof AppApplicationsNationalIdRouteWithChildren
+  '/_app/applications/birth-certificates/$id': typeof AppApplicationsBirthCertificatesIdRoute
+  '/_app/applications/document-recovery/$id': typeof AppApplicationsDocumentRecoveryIdRoute
+  '/_app/applications/national-id/$id': typeof AppApplicationsNationalIdIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/approved-applications'
+    | '/dashboard'
+    | '/printing-center'
+    | '/reports'
+    | '/settings'
+    | '/auth/login'
+    | '/applications/birth-certificates'
+    | '/applications/document-recovery'
+    | '/applications/national-id'
+    | '/applications/birth-certificates/$id'
+    | '/applications/document-recovery/$id'
+    | '/applications/national-id/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/approved-applications'
+    | '/dashboard'
+    | '/printing-center'
+    | '/reports'
+    | '/settings'
+    | '/auth/login'
+    | '/applications/birth-certificates'
+    | '/applications/document-recovery'
+    | '/applications/national-id'
+    | '/applications/birth-certificates/$id'
+    | '/applications/document-recovery/$id'
+    | '/applications/national-id/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/_app/approved-applications'
+    | '/_app/dashboard'
+    | '/_app/printing-center'
+    | '/_app/reports'
+    | '/_app/settings'
+    | '/auth/login'
+    | '/_app/applications/birth-certificates'
+    | '/_app/applications/document-recovery'
+    | '/_app/applications/national-id'
+    | '/_app/applications/birth-certificates/$id'
+    | '/_app/applications/document-recovery/$id'
+    | '/_app/applications/national-id/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  AuthLoginRoute: typeof AuthLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +218,168 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports': {
+      id: '/_app/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/printing-center': {
+      id: '/_app/printing-center'
+      path: '/printing-center'
+      fullPath: '/printing-center'
+      preLoaderRoute: typeof AppPrintingCenterRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/approved-applications': {
+      id: '/_app/approved-applications'
+      path: '/approved-applications'
+      fullPath: '/approved-applications'
+      preLoaderRoute: typeof AppApprovedApplicationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/applications/national-id': {
+      id: '/_app/applications/national-id'
+      path: '/applications/national-id'
+      fullPath: '/applications/national-id'
+      preLoaderRoute: typeof AppApplicationsNationalIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/applications/document-recovery': {
+      id: '/_app/applications/document-recovery'
+      path: '/applications/document-recovery'
+      fullPath: '/applications/document-recovery'
+      preLoaderRoute: typeof AppApplicationsDocumentRecoveryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/applications/birth-certificates': {
+      id: '/_app/applications/birth-certificates'
+      path: '/applications/birth-certificates'
+      fullPath: '/applications/birth-certificates'
+      preLoaderRoute: typeof AppApplicationsBirthCertificatesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/applications/national-id/$id': {
+      id: '/_app/applications/national-id/$id'
+      path: '/$id'
+      fullPath: '/applications/national-id/$id'
+      preLoaderRoute: typeof AppApplicationsNationalIdIdRouteImport
+      parentRoute: typeof AppApplicationsNationalIdRoute
+    }
+    '/_app/applications/document-recovery/$id': {
+      id: '/_app/applications/document-recovery/$id'
+      path: '/$id'
+      fullPath: '/applications/document-recovery/$id'
+      preLoaderRoute: typeof AppApplicationsDocumentRecoveryIdRouteImport
+      parentRoute: typeof AppApplicationsDocumentRecoveryRoute
+    }
+    '/_app/applications/birth-certificates/$id': {
+      id: '/_app/applications/birth-certificates/$id'
+      path: '/$id'
+      fullPath: '/applications/birth-certificates/$id'
+      preLoaderRoute: typeof AppApplicationsBirthCertificatesIdRouteImport
+      parentRoute: typeof AppApplicationsBirthCertificatesRoute
+    }
   }
 }
 
+interface AppApplicationsBirthCertificatesRouteChildren {
+  AppApplicationsBirthCertificatesIdRoute: typeof AppApplicationsBirthCertificatesIdRoute
+}
+
+const AppApplicationsBirthCertificatesRouteChildren: AppApplicationsBirthCertificatesRouteChildren =
+  {
+    AppApplicationsBirthCertificatesIdRoute:
+      AppApplicationsBirthCertificatesIdRoute,
+  }
+
+const AppApplicationsBirthCertificatesRouteWithChildren =
+  AppApplicationsBirthCertificatesRoute._addFileChildren(
+    AppApplicationsBirthCertificatesRouteChildren,
+  )
+
+interface AppApplicationsDocumentRecoveryRouteChildren {
+  AppApplicationsDocumentRecoveryIdRoute: typeof AppApplicationsDocumentRecoveryIdRoute
+}
+
+const AppApplicationsDocumentRecoveryRouteChildren: AppApplicationsDocumentRecoveryRouteChildren =
+  {
+    AppApplicationsDocumentRecoveryIdRoute:
+      AppApplicationsDocumentRecoveryIdRoute,
+  }
+
+const AppApplicationsDocumentRecoveryRouteWithChildren =
+  AppApplicationsDocumentRecoveryRoute._addFileChildren(
+    AppApplicationsDocumentRecoveryRouteChildren,
+  )
+
+interface AppApplicationsNationalIdRouteChildren {
+  AppApplicationsNationalIdIdRoute: typeof AppApplicationsNationalIdIdRoute
+}
+
+const AppApplicationsNationalIdRouteChildren: AppApplicationsNationalIdRouteChildren =
+  {
+    AppApplicationsNationalIdIdRoute: AppApplicationsNationalIdIdRoute,
+  }
+
+const AppApplicationsNationalIdRouteWithChildren =
+  AppApplicationsNationalIdRoute._addFileChildren(
+    AppApplicationsNationalIdRouteChildren,
+  )
+
+interface AppRouteChildren {
+  AppApprovedApplicationsRoute: typeof AppApprovedApplicationsRoute
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppPrintingCenterRoute: typeof AppPrintingCenterRoute
+  AppReportsRoute: typeof AppReportsRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppApplicationsBirthCertificatesRoute: typeof AppApplicationsBirthCertificatesRouteWithChildren
+  AppApplicationsDocumentRecoveryRoute: typeof AppApplicationsDocumentRecoveryRouteWithChildren
+  AppApplicationsNationalIdRoute: typeof AppApplicationsNationalIdRouteWithChildren
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppApprovedApplicationsRoute: AppApprovedApplicationsRoute,
+  AppDashboardRoute: AppDashboardRoute,
+  AppPrintingCenterRoute: AppPrintingCenterRoute,
+  AppReportsRoute: AppReportsRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppApplicationsBirthCertificatesRoute:
+    AppApplicationsBirthCertificatesRouteWithChildren,
+  AppApplicationsDocumentRecoveryRoute:
+    AppApplicationsDocumentRecoveryRouteWithChildren,
+  AppApplicationsNationalIdRoute: AppApplicationsNationalIdRouteWithChildren,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  AuthLoginRoute: AuthLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
