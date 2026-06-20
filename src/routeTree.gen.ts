@@ -13,6 +13,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppApplicationsBirthCertificatesRouteImport } from './routes/_app.applications.birth-certificates'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -33,16 +34,24 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppApplicationsBirthCertificatesRoute =
+  AppApplicationsBirthCertificatesRouteImport.update({
+    id: '/applications/birth-certificates',
+    path: '/applications/birth-certificates',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof AppDashboardRoute
   '/auth/login': typeof AuthLoginRoute
+  '/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof AppDashboardRoute
   '/auth/login': typeof AuthLoginRoute
+  '/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,13 +59,24 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/dashboard': typeof AppDashboardRoute
   '/auth/login': typeof AuthLoginRoute
+  '/_app/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/auth/login'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/auth/login'
+    | '/applications/birth-certificates'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/auth/login'
-  id: '__root__' | '/' | '/_app' | '/_app/dashboard' | '/auth/login'
+  to: '/' | '/dashboard' | '/auth/login' | '/applications/birth-certificates'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/_app/dashboard'
+    | '/auth/login'
+    | '/_app/applications/birth-certificates'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,15 +115,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/applications/birth-certificates': {
+      id: '/_app/applications/birth-certificates'
+      path: '/applications/birth-certificates'
+      fullPath: '/applications/birth-certificates'
+      preLoaderRoute: typeof AppApplicationsBirthCertificatesRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
+  AppApplicationsBirthCertificatesRoute: typeof AppApplicationsBirthCertificatesRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
+  AppApplicationsBirthCertificatesRoute: AppApplicationsBirthCertificatesRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
