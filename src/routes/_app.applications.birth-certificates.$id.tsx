@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Check, X, Printer, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,6 @@ export const Route = createFileRoute("/_app/applications/birth-certificates/$id"
 
 function Page() {
   const { id } = Route.useParams();
-  const navigate = useNavigate();
   const app = useApps((s) => s.birth.find((a) => a.id === id));
   const { approve, reject } = useApps();
   const user = useAuth((s) => s.user);
