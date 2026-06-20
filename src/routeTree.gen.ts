@@ -14,8 +14,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppApplicationsNationalIdRouteImport } from './routes/_app.applications.national-id'
+import { Route as AppApplicationsDocumentRecoveryRouteImport } from './routes/_app.applications.document-recovery'
 import { Route as AppApplicationsBirthCertificatesRouteImport } from './routes/_app.applications.birth-certificates'
 import { Route as AppApplicationsNationalIdIdRouteImport } from './routes/_app.applications.national-id.$id'
+import { Route as AppApplicationsDocumentRecoveryIdRouteImport } from './routes/_app.applications.document-recovery.$id'
 import { Route as AppApplicationsBirthCertificatesIdRouteImport } from './routes/_app.applications.birth-certificates.$id'
 
 const AppRoute = AppRouteImport.update({
@@ -43,6 +45,12 @@ const AppApplicationsNationalIdRoute =
     path: '/applications/national-id',
     getParentRoute: () => AppRoute,
   } as any)
+const AppApplicationsDocumentRecoveryRoute =
+  AppApplicationsDocumentRecoveryRouteImport.update({
+    id: '/applications/document-recovery',
+    path: '/applications/document-recovery',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppApplicationsBirthCertificatesRoute =
   AppApplicationsBirthCertificatesRouteImport.update({
     id: '/applications/birth-certificates',
@@ -54,6 +62,12 @@ const AppApplicationsNationalIdIdRoute =
     id: '/$id',
     path: '/$id',
     getParentRoute: () => AppApplicationsNationalIdRoute,
+  } as any)
+const AppApplicationsDocumentRecoveryIdRoute =
+  AppApplicationsDocumentRecoveryIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AppApplicationsDocumentRecoveryRoute,
   } as any)
 const AppApplicationsBirthCertificatesIdRoute =
   AppApplicationsBirthCertificatesIdRouteImport.update({
@@ -67,8 +81,10 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AppDashboardRoute
   '/auth/login': typeof AuthLoginRoute
   '/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRouteWithChildren
+  '/applications/document-recovery': typeof AppApplicationsDocumentRecoveryRouteWithChildren
   '/applications/national-id': typeof AppApplicationsNationalIdRouteWithChildren
   '/applications/birth-certificates/$id': typeof AppApplicationsBirthCertificatesIdRoute
+  '/applications/document-recovery/$id': typeof AppApplicationsDocumentRecoveryIdRoute
   '/applications/national-id/$id': typeof AppApplicationsNationalIdIdRoute
 }
 export interface FileRoutesByTo {
@@ -76,8 +92,10 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AppDashboardRoute
   '/auth/login': typeof AuthLoginRoute
   '/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRouteWithChildren
+  '/applications/document-recovery': typeof AppApplicationsDocumentRecoveryRouteWithChildren
   '/applications/national-id': typeof AppApplicationsNationalIdRouteWithChildren
   '/applications/birth-certificates/$id': typeof AppApplicationsBirthCertificatesIdRoute
+  '/applications/document-recovery/$id': typeof AppApplicationsDocumentRecoveryIdRoute
   '/applications/national-id/$id': typeof AppApplicationsNationalIdIdRoute
 }
 export interface FileRoutesById {
@@ -87,8 +105,10 @@ export interface FileRoutesById {
   '/_app/dashboard': typeof AppDashboardRoute
   '/auth/login': typeof AuthLoginRoute
   '/_app/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRouteWithChildren
+  '/_app/applications/document-recovery': typeof AppApplicationsDocumentRecoveryRouteWithChildren
   '/_app/applications/national-id': typeof AppApplicationsNationalIdRouteWithChildren
   '/_app/applications/birth-certificates/$id': typeof AppApplicationsBirthCertificatesIdRoute
+  '/_app/applications/document-recovery/$id': typeof AppApplicationsDocumentRecoveryIdRoute
   '/_app/applications/national-id/$id': typeof AppApplicationsNationalIdIdRoute
 }
 export interface FileRouteTypes {
@@ -98,8 +118,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/auth/login'
     | '/applications/birth-certificates'
+    | '/applications/document-recovery'
     | '/applications/national-id'
     | '/applications/birth-certificates/$id'
+    | '/applications/document-recovery/$id'
     | '/applications/national-id/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -107,8 +129,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/auth/login'
     | '/applications/birth-certificates'
+    | '/applications/document-recovery'
     | '/applications/national-id'
     | '/applications/birth-certificates/$id'
+    | '/applications/document-recovery/$id'
     | '/applications/national-id/$id'
   id:
     | '__root__'
@@ -117,8 +141,10 @@ export interface FileRouteTypes {
     | '/_app/dashboard'
     | '/auth/login'
     | '/_app/applications/birth-certificates'
+    | '/_app/applications/document-recovery'
     | '/_app/applications/national-id'
     | '/_app/applications/birth-certificates/$id'
+    | '/_app/applications/document-recovery/$id'
     | '/_app/applications/national-id/$id'
   fileRoutesById: FileRoutesById
 }
@@ -165,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppApplicationsNationalIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/applications/document-recovery': {
+      id: '/_app/applications/document-recovery'
+      path: '/applications/document-recovery'
+      fullPath: '/applications/document-recovery'
+      preLoaderRoute: typeof AppApplicationsDocumentRecoveryRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/applications/birth-certificates': {
       id: '/_app/applications/birth-certificates'
       path: '/applications/birth-certificates'
@@ -178,6 +211,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/applications/national-id/$id'
       preLoaderRoute: typeof AppApplicationsNationalIdIdRouteImport
       parentRoute: typeof AppApplicationsNationalIdRoute
+    }
+    '/_app/applications/document-recovery/$id': {
+      id: '/_app/applications/document-recovery/$id'
+      path: '/$id'
+      fullPath: '/applications/document-recovery/$id'
+      preLoaderRoute: typeof AppApplicationsDocumentRecoveryIdRouteImport
+      parentRoute: typeof AppApplicationsDocumentRecoveryRoute
     }
     '/_app/applications/birth-certificates/$id': {
       id: '/_app/applications/birth-certificates/$id'
@@ -204,6 +244,21 @@ const AppApplicationsBirthCertificatesRouteWithChildren =
     AppApplicationsBirthCertificatesRouteChildren,
   )
 
+interface AppApplicationsDocumentRecoveryRouteChildren {
+  AppApplicationsDocumentRecoveryIdRoute: typeof AppApplicationsDocumentRecoveryIdRoute
+}
+
+const AppApplicationsDocumentRecoveryRouteChildren: AppApplicationsDocumentRecoveryRouteChildren =
+  {
+    AppApplicationsDocumentRecoveryIdRoute:
+      AppApplicationsDocumentRecoveryIdRoute,
+  }
+
+const AppApplicationsDocumentRecoveryRouteWithChildren =
+  AppApplicationsDocumentRecoveryRoute._addFileChildren(
+    AppApplicationsDocumentRecoveryRouteChildren,
+  )
+
 interface AppApplicationsNationalIdRouteChildren {
   AppApplicationsNationalIdIdRoute: typeof AppApplicationsNationalIdIdRoute
 }
@@ -221,6 +276,7 @@ const AppApplicationsNationalIdRouteWithChildren =
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppApplicationsBirthCertificatesRoute: typeof AppApplicationsBirthCertificatesRouteWithChildren
+  AppApplicationsDocumentRecoveryRoute: typeof AppApplicationsDocumentRecoveryRouteWithChildren
   AppApplicationsNationalIdRoute: typeof AppApplicationsNationalIdRouteWithChildren
 }
 
@@ -228,6 +284,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppApplicationsBirthCertificatesRoute:
     AppApplicationsBirthCertificatesRouteWithChildren,
+  AppApplicationsDocumentRecoveryRoute:
+    AppApplicationsDocumentRecoveryRouteWithChildren,
   AppApplicationsNationalIdRoute: AppApplicationsNationalIdRouteWithChildren,
 }
 
