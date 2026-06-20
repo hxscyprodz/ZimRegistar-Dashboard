@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppApplicationsBirthCertificatesRouteImport } from './routes/_app.applications.birth-certificates'
+import { Route as AppApplicationsBirthCertificatesIdRouteImport } from './routes/_app.applications.birth-certificates.$id'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -40,18 +41,26 @@ const AppApplicationsBirthCertificatesRoute =
     path: '/applications/birth-certificates',
     getParentRoute: () => AppRoute,
   } as any)
+const AppApplicationsBirthCertificatesIdRoute =
+  AppApplicationsBirthCertificatesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AppApplicationsBirthCertificatesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof AppDashboardRoute
   '/auth/login': typeof AuthLoginRoute
-  '/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRoute
+  '/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRouteWithChildren
+  '/applications/birth-certificates/$id': typeof AppApplicationsBirthCertificatesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof AppDashboardRoute
   '/auth/login': typeof AuthLoginRoute
-  '/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRoute
+  '/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRouteWithChildren
+  '/applications/birth-certificates/$id': typeof AppApplicationsBirthCertificatesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,7 +68,8 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/dashboard': typeof AppDashboardRoute
   '/auth/login': typeof AuthLoginRoute
-  '/_app/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRoute
+  '/_app/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRouteWithChildren
+  '/_app/applications/birth-certificates/$id': typeof AppApplicationsBirthCertificatesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -68,8 +78,14 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/auth/login'
     | '/applications/birth-certificates'
+    | '/applications/birth-certificates/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/auth/login' | '/applications/birth-certificates'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/auth/login'
+    | '/applications/birth-certificates'
+    | '/applications/birth-certificates/$id'
   id:
     | '__root__'
     | '/'
@@ -77,6 +93,7 @@ export interface FileRouteTypes {
     | '/_app/dashboard'
     | '/auth/login'
     | '/_app/applications/birth-certificates'
+    | '/_app/applications/birth-certificates/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -122,17 +139,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppApplicationsBirthCertificatesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/applications/birth-certificates/$id': {
+      id: '/_app/applications/birth-certificates/$id'
+      path: '/$id'
+      fullPath: '/applications/birth-certificates/$id'
+      preLoaderRoute: typeof AppApplicationsBirthCertificatesIdRouteImport
+      parentRoute: typeof AppApplicationsBirthCertificatesRoute
+    }
   }
 }
 
+interface AppApplicationsBirthCertificatesRouteChildren {
+  AppApplicationsBirthCertificatesIdRoute: typeof AppApplicationsBirthCertificatesIdRoute
+}
+
+const AppApplicationsBirthCertificatesRouteChildren: AppApplicationsBirthCertificatesRouteChildren =
+  {
+    AppApplicationsBirthCertificatesIdRoute:
+      AppApplicationsBirthCertificatesIdRoute,
+  }
+
+const AppApplicationsBirthCertificatesRouteWithChildren =
+  AppApplicationsBirthCertificatesRoute._addFileChildren(
+    AppApplicationsBirthCertificatesRouteChildren,
+  )
+
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
-  AppApplicationsBirthCertificatesRoute: typeof AppApplicationsBirthCertificatesRoute
+  AppApplicationsBirthCertificatesRoute: typeof AppApplicationsBirthCertificatesRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
-  AppApplicationsBirthCertificatesRoute: AppApplicationsBirthCertificatesRoute,
+  AppApplicationsBirthCertificatesRoute:
+    AppApplicationsBirthCertificatesRouteWithChildren,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
