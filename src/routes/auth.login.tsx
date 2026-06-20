@@ -1,0 +1,113 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { Eye, EyeOff, Shield, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/lib/store";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/auth/login")({
+  head: () => ({ meta: [{ title: "Sign In — Registrar General Zimbabwe" }] }),
+  component: LoginPage,
+});
+
+function LoginPage() {
+  const navigate = useNavigate();
+  const login = useAuth((s) => s.login);
+  const [emp, setEmp] = useState("");
+  const [pwd, setPwd] = useState("");
+  const [show, setShow] = useState(false);
+  const [remember, setRemember] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ emp?: string; pwd?: string }>({});
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs: typeof errors = {};
+    if (!emp.trim()) errs.emp = "Employee number is required.";
+    if (pwd.length < 4) errs.pwd = "Password must be at least 4 characters.";
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
+    setLoading(true);
+    const ok = await login(emp.trim(), pwd);
+    setLoading(false);
+    if (!ok) {
+      toast.error("Invalid credentials");
+      return;
+    }
+    toast.success("Welcome back");
+    navigate({ to: "/dashboard" });
+  };
+
+  return (
+    <div className="min-h-screen w-full bg-gradient-to-br from-gov via-gov to-[oklch(0.22_0.08_260)]">
+      <div className="mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 items-center gap-8 px-6 py-12 lg:grid-cols-2">
+        <div className="hidden text-gov-foreground lg:block">
+          <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 ring-1 ring-white/20">
+            <Shield className="h-4 w-4 text-gold" />
+            <span className="text-xs font-semibold uppercase tracking-wider">Republic of Zimbabwe</span>
+          </div>
+          <h1 className="font-display text-4xl font-bold leading-tight">
+            Registrar General's Office
+          </h1>
+          <p className="mt-3 max-w-md text-white/80">
+            Secure access for staff to manage Birth Certificates, National IDs and Document Recovery applications.
+          </p>
+          <div className="mt-10 grid grid-cols-3 gap-4 text-sm">
+            {["Issue", "Approve", "Print"].map((t, i) => (
+              <div key={t} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                <p className="text-2xl font-bold text-gold">0{i + 1}</p>
+                <p className="mt-1 text-white/80">{t} citizen documents securely</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-card p-7 shadow-2xl">
+          <div className="mb-6 flex items-center gap-3">
+            <div className="grid h-11 w-11 place-items-center rounded-xl bg-gov text-gov-foreground">
+              <Shield className="h-5 w-5 text-gold" />
+            </div>
+            <div>
+              <h2 className="font-display text-xl font-bold">Staff Sign In</h2>
+              <p className="text-xs text-muted-foreground">Use your Employee credentials</p>
+            </div>
+          </div>
+          <form onSubmit={submit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="emp">Employee Number</Label>
+              <Input id="emp" placeholder="e.g. RG-04821" value={emp} onChange={(e) => setEmp(e.target.value)} autoComplete="username" />
+              {errors.emp ? <p className="text-xs text-destructive">{errors.emp}</p> : null}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="pwd">Password</Label>
+              <div className="relative">
+                <Input id="pwd" type={show ? "text" : "password"} value={pwd} onChange={(e) => setPwd(e.target.value)} autoComplete="current-password" />
+                <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground">
+                  {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {errors.pwd ? <p className="text-xs text-destructive">{errors.pwd}</p> : null}
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox checked={remember} onCheckedChange={(v) => setRemember(!!v)} /> Remember me
+              </label>
+              <button type="button" className="text-sm font-medium text-gov hover:underline dark:text-primary" onClick={() => toast.info("Please contact the IT helpdesk.")}>
+                Forgot password?
+              </button>
+            </div>
+            <Button type="submit" className="w-full bg-gov text-gov-foreground hover:bg-gov/90" disabled={loading}>
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Sign in securely
+            </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              By signing in you agree to the official conduct policy of the RG Office.
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
