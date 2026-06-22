@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_app/applications/birth-certificates")({
 
 function BirthCertificateRoute() {
   const matchRoute = useMatchRoute();
-  const isDetailRoute = Boolean(matchRoute({ to: "/applications/birth-certificates/$id" }));
+  const isDetailRoute = Boolean(matchRoute({ to: "/applications/birth-certificates/$id", fuzzy: true }));
 
   return isDetailRoute ? <Outlet /> : <BirthCertList />;
 }

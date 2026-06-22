@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_app/applications/national-id")({
 
 function NationalIdRoute() {
   const matchRoute = useMatchRoute();
-  const isDetailRoute = Boolean(matchRoute({ to: "/applications/national-id/$id" }));
+  const isDetailRoute = Boolean(matchRoute({ to: "/applications/national-id/$id", fuzzy: true }));
 
   return isDetailRoute ? <Outlet /> : <NIDList />;
 }
