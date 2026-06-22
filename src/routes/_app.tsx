@@ -1,4 +1,5 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Navigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/lib/store";
 
@@ -7,10 +8,11 @@ export const Route = createFileRoute("/_app")({
 });
 
 function AppLayout() {
-  // Client-side guard (persisted auth lives in localStorage)
-  if (typeof window !== "undefined") {
-    const user = useAuth.getState().user;
-    if (!user) throw redirect({ to: "/auth/login" });
+  const [hydrated, setHydrated] = useState(false);
+  const user = useAuth((s) => s.user);
+  useEffect(() => setHydrated(true), []);
+  if (hydrated && !user) {
+    return <Navigate to="/auth/login" />;
   }
   return (
     <AppShell>
