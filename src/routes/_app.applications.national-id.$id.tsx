@@ -8,6 +8,7 @@ import { InfoRow } from "@/components/common/InfoRow";
 import { DocumentCard } from "@/components/common/ImageViewer";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { RejectModal } from "@/components/common/RejectModal";
+import { NationalIdCardPrint } from "@/components/print/NationalIdCardPrint";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useApps, useAuth } from "@/lib/store";
 import { toast } from "sonner";
@@ -25,6 +26,7 @@ function Page() {
   const user = useAuth((s) => s.user);
   const [approveOpen, setApproveOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
+  const [printOpen, setPrintOpen] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
 
   if (!app) return (
@@ -86,8 +88,11 @@ function Page() {
               <Button variant="destructive" className="w-full" disabled={app.status !== "Pending"} onClick={() => setRejectOpen(true)}>
                 <X className="mr-2 h-4 w-4" /> Reject
               </Button>
+              <Button variant="outline" className="w-full" disabled={app.status !== "Approved"} onClick={() => setPrintOpen(true)}>
+                <Printer className="mr-2 h-4 w-4" /> Print National ID Card
+              </Button>
               <Button variant="outline" className="w-full" onClick={() => setSummaryOpen(true)}>
-                <Printer className="mr-2 h-4 w-4" /> Print Summary
+                <Printer className="mr-2 h-4 w-4" /> Print Application Summary
               </Button>
             </div>
           </div>
@@ -99,6 +104,20 @@ function Page() {
         onConfirm={() => { approve("nationalId", app.id, user?.name ?? "Officer"); toast.success("Approved"); }} />
       <RejectModal open={rejectOpen} onOpenChange={setRejectOpen}
         onConfirm={(reason) => { reject("nationalId", app.id, reason, user?.name ?? "Officer"); setRejectOpen(false); toast.success("Rejected"); }} />
+
+      <Dialog open={printOpen} onOpenChange={setPrintOpen}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>National ID Card Preview</span>
+              <Button size="sm" variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" />Print</Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[75vh] overflow-auto bg-muted p-6">
+            <NationalIdCardPrint app={app} />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={summaryOpen} onOpenChange={setSummaryOpen}>
         <DialogContent className="max-w-3xl">

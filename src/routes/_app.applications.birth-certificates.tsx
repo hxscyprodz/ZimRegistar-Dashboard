@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Eye, FileText } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -13,8 +13,15 @@ import { format } from "date-fns";
 
 export const Route = createFileRoute("/_app/applications/birth-certificates")({
   head: () => ({ meta: [{ title: "Birth Certificate Applications" }] }),
-  component: BirthCertList,
+  component: BirthCertificateRoute,
 });
+
+function BirthCertificateRoute() {
+  const matchRoute = useMatchRoute();
+  const isDetailRoute = Boolean(matchRoute({ to: "/applications/birth-certificates/$id" }));
+
+  return isDetailRoute ? <Outlet /> : <BirthCertList />;
+}
 
 function BirthCertList() {
   const birth = useApps((s) => s.birth);
