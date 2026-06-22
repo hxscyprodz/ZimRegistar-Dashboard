@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Eye, IdCard } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -13,8 +13,15 @@ import { format } from "date-fns";
 
 export const Route = createFileRoute("/_app/applications/national-id")({
   head: () => ({ meta: [{ title: "National ID Applications" }] }),
-  component: NIDList,
+  component: NationalIdRoute,
 });
+
+function NationalIdRoute() {
+  const matchRoute = useMatchRoute();
+  const isDetailRoute = Boolean(matchRoute({ to: "/applications/national-id/$id", fuzzy: true }));
+
+  return isDetailRoute ? <Outlet /> : <NIDList />;
+}
 
 function NIDList() {
   const list = useApps((s) => s.nationalId);
