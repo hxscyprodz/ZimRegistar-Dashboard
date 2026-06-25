@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Eye, FileSearch } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -13,8 +13,14 @@ import { format } from "date-fns";
 
 export const Route = createFileRoute("/_app/applications/document-recovery")({
   head: () => ({ meta: [{ title: "Document Recovery Applications" }] }),
-  component: RecList,
+  component: RecoveryRoute,
 });
+
+function RecoveryRoute() {
+  const matchRoute = useMatchRoute();
+  const isDetail = Boolean(matchRoute({ to: "/applications/document-recovery/$id", fuzzy: true }));
+  return isDetail ? <Outlet /> : <RecList />;
+}
 
 function RecList() {
   const list = useApps((s) => s.recovery);
