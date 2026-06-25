@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { Download, FileSpreadsheet, FileText } from "lucide-react";
+import { Download, FileSpreadsheet, FileText, ShieldAlert } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
-import { useApps } from "@/lib/store";
+import { useApps, useAuth } from "@/lib/store";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area, PieChart, Pie, Cell, Legend } from "recharts";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -14,6 +14,24 @@ export const Route = createFileRoute("/_app/reports")({
 });
 
 function Reports() {
+  const role = useAuth((s) => s.user?.role);
+  if (role === "Registrar Officer") {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-10 text-center shadow-sm">
+        <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-destructive/10 text-destructive">
+          <ShieldAlert className="h-7 w-7" />
+        </div>
+        <h2 className="font-display text-xl font-bold">Access restricted</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          The Reports module is available to Supervisors and Administrators only.
+        </p>
+        <Link to="/dashboard" className="mt-4 inline-block text-sm font-medium text-gov hover:underline">
+          Back to dashboard
+        </Link>
+      </div>
+    );
+  }
+
   const { birth, nationalId, recovery } = useApps();
   const all = [...birth, ...nationalId, ...recovery];
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -58,6 +76,72 @@ function Reports() {
     URL.revokeObjectURL(url);
   };
 
+  const exportExcel = () => {
+    const header = ["Application #", "Applicant", "Type", "Status", "Submitted"];
+    const escape = (v: string) => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const rows = all
+      .map(
+        (a) =>
+          `<tr><td>${escape(a.applicationNumber)}</td><td>${escape(a.applicantName)}</td><td>${escape(a.type)}</td><td>${escape(
+            a.status,
+          )}</td><td>${escape(format(new Date(a.dateSubmitted), "yyyy-MM-dd"))}</td></tr>`,
+      )
+      .join("");
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8" /></head><body><table border="1"><thead><tr>${header
+      .map((h) => `<th>${h}</th>`)
+      .join("")}</tr></thead><tbody>${rows}</tbody></table></body></html>`;
+    const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `rg-report-${format(new Date(), "yyyyMMdd-HHmm")}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Excel file downloaded");
+  };
+
+  const exportPDF = () => {
+    const w = window.open("", "_blank", "width=900,height=700");
+    if (!w) {
+      toast.error("Pop-up blocked — allow pop-ups to export PDF");
+      return;
+    }
+    const rowsHtml = all
+      .map(
+        (a) =>
+          `<tr><td>${a.applicationNumber}</td><td>${a.applicantName}</td><td>${a.type}</td><td>${a.status}</td><td>${format(
+            new Date(a.dateSubmitted),
+            "dd MMM yyyy",
+          )}</td></tr>`,
+      )
+      .join("");
+    w.document.write(`<!doctype html><html><head><title>RG Report ${format(new Date(), "yyyy-MM-dd")}</title>
+      <style>
+        body{font-family:Arial,Helvetica,sans-serif;color:#111;padding:32px;}
+        h1{color:#0A3D91;margin:0 0 4px;font-size:22px;}
+        .sub{color:#555;font-size:12px;margin-bottom:20px;}
+        .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:20px;}
+        .stat{border:1px solid #ddd;padding:8px;border-radius:6px;}
+        .stat b{display:block;font-size:18px;color:#0A3D91;}
+        table{width:100%;border-collapse:collapse;font-size:12px;}
+        th{background:#0A3D91;color:#fff;text-align:left;padding:6px;}
+        td{border:1px solid #e5e5e5;padding:6px;}
+        tr:nth-child(even) td{background:#fafafa;}
+        .seal{border-top:2px solid #D4AF37;margin-top:24px;padding-top:8px;font-size:11px;color:#666;}
+      </style></head><body>
+      <h1>Registrar General — Operations Report</h1>
+      <div class="sub">Republic of Zimbabwe · Generated ${format(new Date(), "dd MMM yyyy, HH:mm")}</div>
+      <div class="stats">
+        ${stats.map((s) => `<div class="stat"><span>${s.label}</span><b>${s.value}</b></div>`).join("")}
+      </div>
+      <table><thead><tr><th>Application #</th><th>Applicant</th><th>Type</th><th>Status</th><th>Submitted</th></tr></thead>
+      <tbody>${rowsHtml}</tbody></table>
+      <div class="seal">Official report — Registrar General's Office. Use browser "Save as PDF" in the print dialog.</div>
+      <script>window.onload=()=>setTimeout(()=>window.print(),250);</script>
+      </body></html>`);
+    w.document.close();
+  };
+
   return (
     <div>
       <PageHeader
@@ -65,8 +149,8 @@ function Reports() {
         description="Operational insights across all application categories."
         actions={
           <>
-            <Button variant="outline" onClick={() => toast.info("PDF export queued")}><FileText className="mr-2 h-4 w-4" />PDF</Button>
-            <Button variant="outline" onClick={() => toast.info("Excel export queued")}><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>
+            <Button variant="outline" onClick={exportPDF}><FileText className="mr-2 h-4 w-4" />PDF</Button>
+            <Button variant="outline" onClick={exportExcel}><FileSpreadsheet className="mr-2 h-4 w-4" />Excel</Button>
             <Button onClick={exportCSV}><Download className="mr-2 h-4 w-4" />CSV</Button>
           </>
         }

@@ -32,7 +32,7 @@ function Print() {
     const ql = q.toLowerCase();
     const matches = (values: Array<string | undefined>) =>
       ql.trim() === "" || values.some((value) => value?.toLowerCase().includes(ql));
-    const bx = birth.filter((a) => a.status === "Approved" && matches([
+    const bx = birth.filter((a) => a.status === "Approved" && a.printStatus !== "Printed" && matches([
       a.applicantName,
       a.applicationNumber,
       a.child.firstName,
@@ -42,7 +42,7 @@ function Print() {
       a.child.cityOfBirth,
     ]))
       .map((a) => ({ ...a, kind: "birth" as const }));
-    const nx = nationalId.filter((a) => a.status === "Approved" && matches([
+    const nx = nationalId.filter((a) => a.status === "Approved" && a.printStatus !== "Printed" && matches([
       a.applicantName,
       a.applicationNumber,
       a.applicant.firstName,
