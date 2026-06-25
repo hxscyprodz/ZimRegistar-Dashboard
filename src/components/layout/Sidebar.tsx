@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, FileText, IdCard, FileSearch, CheckCircle2, Printer, BarChart3, Settings, Shield, ChevronLeft,
 } from "lucide-react";
-import { useUI } from "@/lib/store";
+import { useUI, useAuth } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -18,7 +18,9 @@ const items = [
 
 export function Sidebar() {
   const { sidebarCollapsed, toggleSidebar } = useUI();
+  const role = useAuth((s) => s.user?.role);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const visibleItems = items.filter((it) => !(it.to === "/reports" && role === "Registrar Officer"));
   return (
     <aside
       className={cn(
@@ -38,7 +40,7 @@ export function Sidebar() {
         )}
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-3">
-        {items.map((it) => {
+        {visibleItems.map((it) => {
           const active = pathname === it.to || pathname.startsWith(it.to + "/");
           const Icon = it.icon;
           return (
