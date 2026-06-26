@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Pencil, Ban, Moon, Bell, Shield, Lock, Trash2 } from "lucide-react";
+import { Plus, Pencil, Ban, Moon, Bell, Shield, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -129,7 +129,7 @@ function Settings() {
   return (
     <div>
       <PageHeader title="Settings" description="Manage staff, roles, theme and notifications." />
-      <Tabs defaultValue="users">
+      <Tabs defaultValue={isAdmin ? "users" : "profile"}>
         <TabsList>
           {isAdmin && <TabsTrigger value="users">User Management</TabsTrigger>}
           <TabsTrigger value="system">System</TabsTrigger>
