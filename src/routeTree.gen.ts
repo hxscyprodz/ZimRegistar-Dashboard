@@ -15,6 +15,7 @@ import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppPrintingCenterRouteImport } from './routes/_app.printing-center'
+import { Route as AppNotificationsRouteImport } from './routes/_app.notifications'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppApprovedApplicationsRouteImport } from './routes/_app.approved-applications'
 import { Route as AppApplicationsNationalIdRouteImport } from './routes/_app.applications.national-id'
@@ -51,6 +52,11 @@ const AppReportsRoute = AppReportsRouteImport.update({
 const AppPrintingCenterRoute = AppPrintingCenterRouteImport.update({
   id: '/printing-center',
   path: '/printing-center',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotificationsRoute = AppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/approved-applications': typeof AppApprovedApplicationsRoute
   '/dashboard': typeof AppDashboardRoute
+  '/notifications': typeof AppNotificationsRoute
   '/printing-center': typeof AppPrintingCenterRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/approved-applications': typeof AppApprovedApplicationsRoute
   '/dashboard': typeof AppDashboardRoute
+  '/notifications': typeof AppNotificationsRoute
   '/printing-center': typeof AppPrintingCenterRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/approved-applications': typeof AppApprovedApplicationsRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/notifications': typeof AppNotificationsRoute
   '/_app/printing-center': typeof AppPrintingCenterRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/settings': typeof AppSettingsRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/'
     | '/approved-applications'
     | '/dashboard'
+    | '/notifications'
     | '/printing-center'
     | '/reports'
     | '/settings'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/'
     | '/approved-applications'
     | '/dashboard'
+    | '/notifications'
     | '/printing-center'
     | '/reports'
     | '/settings'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_app/approved-applications'
     | '/_app/dashboard'
+    | '/_app/notifications'
     | '/_app/printing-center'
     | '/_app/reports'
     | '/_app/settings'
@@ -244,6 +256,13 @@ declare module '@tanstack/react-router' {
       path: '/printing-center'
       fullPath: '/printing-center'
       preLoaderRoute: typeof AppPrintingCenterRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/notifications': {
+      id: '/_app/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AppNotificationsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/dashboard': {
@@ -352,6 +371,7 @@ const AppApplicationsNationalIdRouteWithChildren =
 interface AppRouteChildren {
   AppApprovedApplicationsRoute: typeof AppApprovedApplicationsRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppNotificationsRoute: typeof AppNotificationsRoute
   AppPrintingCenterRoute: typeof AppPrintingCenterRoute
   AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -363,6 +383,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppApprovedApplicationsRoute: AppApprovedApplicationsRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppNotificationsRoute: AppNotificationsRoute,
   AppPrintingCenterRoute: AppPrintingCenterRoute,
   AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRoute,
