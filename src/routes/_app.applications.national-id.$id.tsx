@@ -64,8 +64,6 @@ function Page() {
             <h3 className="mb-2 font-display text-base font-bold">Supporting Documents</h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <DocumentCard label="Birth Certificate" src={app.documents.birthCertificate} />
-              <DocumentCard label="Proof of Residence" src={app.documents.proofOfResidence} />
-              <DocumentCard label="Applicant Photo" src={app.documents.photo} />
             </div>
           </div>
 
