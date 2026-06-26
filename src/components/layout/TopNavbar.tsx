@@ -4,12 +4,17 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth, useUI } from "@/lib/store";
+import { useAuth, useUI, useApps } from "@/lib/store";
 
 export function TopNavbar() {
   const { user, logout } = useAuth();
   const { toggleSidebar, dark, toggleDark } = useUI();
   const navigate = useNavigate();
+  const pendingCount = useApps((s) =>
+    s.birth.filter((a) => a.status === "Pending").length +
+    s.nationalId.filter((a) => a.status === "Pending").length +
+    s.recovery.filter((a) => a.status === "Pending").length
+  );
   return (
     <header className="no-print sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
       <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleSidebar}>
@@ -23,9 +28,13 @@ export function TopNavbar() {
         <Button variant="ghost" size="icon" onClick={toggleDark} title="Toggle theme">
           {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
-        <Button variant="ghost" size="icon" className="relative" title="Notifications">
+        <Button variant="ghost" size="icon" className="relative" title="Notifications" onClick={() => navigate({ to: "/notifications" })}>
           <Bell className="h-5 w-5" />
-          <span className="absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-gold text-[10px] font-bold text-gold-foreground">3</span>
+          {pendingCount > 0 && (
+            <span className="absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-gold text-[10px] font-bold text-gold-foreground">
+              {pendingCount > 9 ? "9+" : pendingCount}
+            </span>
+          )}
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

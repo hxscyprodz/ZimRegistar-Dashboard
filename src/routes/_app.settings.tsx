@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Pencil, Ban, Moon, Bell, Shield, Lock, Trash2 } from "lucide-react";
+import { Plus, Pencil, Ban, Moon, Bell, Shield, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -129,19 +129,15 @@ function Settings() {
   return (
     <div>
       <PageHeader title="Settings" description="Manage staff, roles, theme and notifications." />
-      <Tabs defaultValue="users">
+      <Tabs defaultValue={isAdmin ? "users" : "profile"}>
         <TabsList>
-          <TabsTrigger value="users">User Management</TabsTrigger>
+          {isAdmin && <TabsTrigger value="users">User Management</TabsTrigger>}
           <TabsTrigger value="system">System</TabsTrigger>
           <TabsTrigger value="profile">My Profile</TabsTrigger>
         </TabsList>
 
+        {isAdmin && (
         <TabsContent value="users" className="mt-4">
-          {!isAdmin ? (
-            <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-              <Lock className="h-4 w-4" /> You are viewing staff in read-only mode. Only Administrators can add or edit staff.
-            </div>
-          ) : null}
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
             <div className="flex items-center justify-between border-b border-border px-5 py-3">
               <h3 className="font-display font-bold">Staff Members</h3>
@@ -210,6 +206,7 @@ function Settings() {
             </div>
           </div>
         </TabsContent>
+        )}
 
         <TabsContent value="system" className="mt-4 space-y-4">
           <div className="flex items-center justify-between rounded-xl border border-border bg-card p-5 shadow-sm">
