@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Pencil, Ban, Moon, Bell, Shield, Lock } from "lucide-react";
+import { Plus, Pencil, Ban, Moon, Bell, Shield, Lock, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUI, useAuth, useStaff, type StaffMember, type Role } from "@/lib/store";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -44,13 +45,14 @@ const emptyDraft = (): Draft => ({
 function Settings() {
   const { dark, toggleDark } = useUI();
   const user = useAuth((s) => s.user);
-  const { staff, addStaff, updateStaff, toggleActive } = useStaff();
+  const { staff, addStaff, updateStaff, toggleActive, deleteStaff } = useStaff();
   const isAdmin = user?.role === "Administrator";
   const [notifEmail, setNotifEmail] = useState(true);
   const [notifPush, setNotifPush] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft());
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const openAdd = () => {
     if (!isAdmin) {
@@ -109,6 +111,19 @@ function Settings() {
     updateStaff(editingId, draft);
     setEditingId(null);
     toast.success("Staff updated");
+  };
+
+  const requestDelete = () => {
+    if (!isAdmin || !editingId) return;
+    setConfirmDeleteId(editingId);
+  };
+
+  const confirmDelete = () => {
+    if (!confirmDeleteId) return;
+    deleteStaff(confirmDeleteId);
+    setConfirmDeleteId(null);
+    setEditingId(null);
+    toast.success("Staff deleted");
   };
 
   return (
@@ -254,13 +269,23 @@ function Settings() {
         onOpenChange={(v) => { if (!v) setEditingId(null); }}
         onSubmit={submitEdit}
         submitLabel="Save changes"
+        onDelete={isAdmin && editingId ? requestDelete : undefined}
+      />
+      <ConfirmModal
+        open={!!confirmDeleteId}
+        onOpenChange={(v) => { if (!v) setConfirmDeleteId(null); }}
+        title="Delete staff member?"
+        description="This action cannot be undone. The user will lose access immediately."
+        confirmLabel="Delete"
+        tone="destructive"
+        onConfirm={confirmDelete}
       />
     </div>
   );
 }
 
 function StaffDialog({
-  open, title, draft, setDraft, onOpenChange, onSubmit, submitLabel,
+  open, title, draft, setDraft, onOpenChange, onSubmit, submitLabel, onDelete,
 }: {
   open: boolean;
   title: string;
@@ -269,6 +294,7 @@ function StaffDialog({
   onOpenChange: (v: boolean) => void;
   onSubmit: () => void;
   submitLabel: string;
+  onDelete?: () => void;
 }) {
   const set = (patch: Partial<Draft>) => setDraft({ ...draft, ...patch });
   return (
@@ -318,9 +344,18 @@ function StaffDialog({
             <Input type="text" value={draft.password} onChange={(e) => set({ password: e.target.value })} placeholder="Min 4 characters" />
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={onSubmit}>{submitLabel}</Button>
+        <DialogFooter className="sm:justify-between">
+          <div>
+            {onDelete ? (
+              <Button variant="destructive" onClick={onDelete}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete staff
+              </Button>
+            ) : null}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button onClick={onSubmit}>{submitLabel}</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { InfoRow } from "@/components/common/InfoRow";
-import { DocumentCard } from "@/components/common/ImageViewer";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { RejectModal } from "@/components/common/RejectModal";
 import { useApps, useAuth } from "@/lib/store";
@@ -65,15 +64,6 @@ function Page() {
               <InfoRow label="Report Number" value={app.policeReport.reportNumber} />
               <InfoRow label="Station" value={app.policeReport.station} />
               <InfoRow label="Report Date" value={app.policeReport.date} />
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-            <h3 className="mb-2 font-display text-base font-bold">Uploaded Documents</h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <DocumentCard label="Police Report" src={app.documents.policeReport} />
-              <DocumentCard label="Affidavit" src={app.documents.affidavit} />
-              {app.documents.photoId ? <DocumentCard label="Photo ID" src={app.documents.photoId} /> : null}
             </div>
           </div>
 
