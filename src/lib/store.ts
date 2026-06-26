@@ -112,6 +112,7 @@ interface StaffState {
   addStaff: (s: Omit<StaffMember, "id">) => void;
   updateStaff: (id: string, patch: Partial<StaffMember>) => void;
   toggleActive: (id: string) => void;
+  deleteStaff: (id: string) => void;
 }
 
 export const useStaff = create<StaffState>()(
@@ -129,6 +130,10 @@ export const useStaff = create<StaffState>()(
       toggleActive: (id) =>
         set((state) => ({
           staff: state.staff.map((m) => (m.id === id ? { ...m, active: !m.active } : m)),
+        })),
+      deleteStaff: (id) =>
+        set((state) => ({
+          staff: state.staff.filter((m) => m.id !== id),
         })),
     }),
     { name: "rg-staff", version: 1 },
