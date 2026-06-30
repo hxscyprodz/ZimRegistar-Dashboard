@@ -300,3 +300,25 @@
     box-shadow: none !important;
   }
 }
+
+/* Print-specific overrides outside Tailwind layers so browser print dialogs respect them exactly. */
+@media print {
+  body:has(.print-birth-certificate, .print-id-card) [role="dialog"] {
+    left: 0 !important;
+    top: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    translate: 0 0 !important;
+    transform: none !important;
+  }
+
+  .print-birth-certificate,
+  .print-id-card {
+    left: 0 !important;
+    top: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    translate: 0 0 !important;
+    transform: none !important;
+  }
+}
