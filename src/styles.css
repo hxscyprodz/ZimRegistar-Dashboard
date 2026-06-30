@@ -216,9 +216,9 @@
     border: 0 !important;
     overflow: hidden !important;
     transform: none !important;
-    translate: none !important;
-    scale: none !important;
-    rotate: none !important;
+    translate: 0 0 !important;
+    scale: 1 !important;
+    rotate: 0deg !important;
     box-shadow: none !important;
   }
 
@@ -259,9 +259,9 @@
     align-items: center !important;
     justify-content: center !important;
     transform: none !important;
-    translate: none !important;
-    scale: none !important;
-    rotate: none !important;
+    translate: 0 0 !important;
+    scale: 1 !important;
+    rotate: 0deg !important;
     page-break-after: avoid !important;
     page-break-before: avoid !important;
     page-break-inside: avoid !important;
