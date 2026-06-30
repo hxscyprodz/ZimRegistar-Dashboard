@@ -322,3 +322,110 @@
     transform: none !important;
   }
 }
+
+/* Final print isolation: remove dashboard/dialog chrome from layout so the
+   certificate is the only printable content and cannot repeat on page 2. */
+@media print {
+  @page { size: A4 portrait; margin: 0; }
+
+  html,
+  body {
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: white !important;
+  }
+
+  body:has(.print-birth-certificate) > :not(:has(.print-birth-certificate)) {
+    display: none !important;
+  }
+
+  body:has(.print-birth-certificate) [role="dialog"] {
+    position: static !important;
+    display: block !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    min-width: 210mm !important;
+    min-height: 297mm !important;
+    max-width: 210mm !important;
+    max-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+    transform: none !important;
+    translate: none !important;
+    box-shadow: none !important;
+    visibility: visible !important;
+  }
+
+  body:has(.print-birth-certificate) [role="dialog"] > :not(:has(.print-birth-certificate)):not(.print-birth-certificate) {
+    display: none !important;
+  }
+
+  body:has(.print-birth-certificate) [role="dialog"] > :has(.print-birth-certificate) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    min-width: 210mm !important;
+    min-height: 297mm !important;
+    max-width: 210mm !important;
+    max-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: white !important;
+    visibility: visible !important;
+  }
+
+  body:has(.print-birth-certificate) [role="dialog"] *,
+  .print-birth-certificate,
+  .print-birth-certificate * {
+    visibility: visible !important;
+  }
+
+  .print-birth-certificate {
+    position: relative !important;
+    inset: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    min-width: 210mm !important;
+    min-height: 297mm !important;
+    max-width: 210mm !important;
+    max-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: white !important;
+    box-shadow: none !important;
+    transform: none !important;
+    translate: none !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-before: avoid !important;
+    break-after: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .print-birth-certificate > div {
+    box-sizing: border-box !important;
+    width: 190mm !important;
+    height: 277mm !important;
+    min-width: 190mm !important;
+    min-height: 0 !important;
+    max-width: 190mm !important;
+    max-height: 277mm !important;
+    margin: 0 !important;
+    padding: 7mm !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+  }
+}
