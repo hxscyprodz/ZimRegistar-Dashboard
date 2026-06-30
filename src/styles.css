@@ -170,7 +170,7 @@
 }
 
 @media print {
-  @page { size: A4 portrait; margin: 8mm; }
+  @page { size: A4 portrait; margin: 0; }
 
   html, body {
     width: 210mm;
@@ -208,7 +208,7 @@
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    justify-content: flex-start !important;
+    justify-content: center !important;
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
@@ -220,21 +220,21 @@
     break-inside: avoid !important;
   }
 
-  /* Scale templates so the whole layout always fits one A4 page */
+  /* Use zoom (affects layout) so pagination sees the scaled size */
   .print-birth-certificate > div {
-    transform: scale(0.82);
-    transform-origin: top center;
+    zoom: 0.74;
     box-shadow: none !important;
+    min-height: 0 !important;
+  }
+  .print-birth-certificate > div > div {
+    min-height: 0 !important;
   }
 
   .print-id-card {
-    gap: 6mm !important;
-    padding-top: 6mm !important;
+    gap: 8mm !important;
   }
   .print-id-card > div {
-    transform: scale(0.82);
-    transform-origin: top center;
+    zoom: 0.78;
     box-shadow: none !important;
-    margin-bottom: -40px;
   }
 }
