@@ -183,8 +183,8 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 
 function PrintDialog({ open, onOpenChange, title, children }: { open: boolean; onOpenChange: (v: boolean) => void; title: string; children: React.ReactNode }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
+      <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="print-document-dialog max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>{title}</span>
@@ -193,7 +193,7 @@ function PrintDialog({ open, onOpenChange, title, children }: { open: boolean; o
             </Button>
           </DialogTitle>
         </DialogHeader>
-        <div className="max-h-[75vh] overflow-auto bg-muted p-6">{children}</div>
+        <div className="print-document-host max-h-[75vh] overflow-auto bg-muted p-6">{children}</div>
       </DialogContent>
     </Dialog>
   );
