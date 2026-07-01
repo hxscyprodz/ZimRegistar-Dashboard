@@ -22,9 +22,11 @@ function LoginPage() {
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ emp?: string; pwd?: string }>({});
+  const [formError, setFormError] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     const errs: typeof errors = {};
     if (!emp.trim()) errs.emp = "Employee number is required.";
     if (pwd.length < 4) errs.pwd = "Password must be at least 4 characters.";
@@ -34,7 +36,9 @@ function LoginPage() {
     const ok = await login(emp.trim(), pwd);
     setLoading(false);
     if (!ok) {
-      toast.error("Invalid credentials");
+      const msg = "Invalid employee number or password. Please try again.";
+      setFormError(msg);
+      toast.error(msg);
       return;
     }
     toast.success("Welcome back");
@@ -75,6 +79,11 @@ function LoginPage() {
             </div>
           </div>
           <form onSubmit={submit} className="space-y-4">
+            {formError ? (
+              <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {formError}
+              </div>
+            ) : null}
             <div className="space-y-1.5">
               <Label htmlFor="emp">Employee Number</Label>
               <Input id="emp" placeholder="e.g. RG-04821" value={emp} onChange={(e) => setEmp(e.target.value)} autoComplete="username" />
