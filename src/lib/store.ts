@@ -24,6 +24,17 @@ export interface StaffMember {
   password: string;
 }
 
+export function nextEmployeeNumber(existing: StaffMember[]): string {
+  const nums = existing
+    .map((s) => {
+      const m = s.employeeNumber.match(/RG-(\d+)/i);
+      return m ? parseInt(m[1], 10) : 0;
+    })
+    .filter((n) => !Number.isNaN(n));
+  const next = (nums.length ? Math.max(...nums) : 10000) + 1;
+  return `RG-${String(next).padStart(5, "0")}`;
+}
+
 export const MOCK_STAFF: StaffMember[] = [
   {
     id: "u-1",

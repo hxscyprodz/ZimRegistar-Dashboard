@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useUI, useAuth, useStaff, type StaffMember, type Role } from "@/lib/store";
+import { useUI, useAuth, useStaff, nextEmployeeNumber, type StaffMember, type Role } from "@/lib/store";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Input } from "@/components/ui/input";
@@ -59,7 +59,7 @@ function Settings() {
       toast.error("Only Administrators can add staff.");
       return;
     }
-    setDraft(emptyDraft());
+    setDraft({ ...emptyDraft(), employeeNumber: nextEmployeeNumber(staff) });
     setAddOpen(true);
   };
 
@@ -95,13 +95,11 @@ function Settings() {
   const submitAdd = () => {
     const err = validate(draft);
     if (err) { toast.error(err); return; }
-    if (staff.some((s) => s.employeeNumber.toLowerCase() === draft.employeeNumber.toLowerCase())) {
-      toast.error("Employee number already exists.");
-      return;
-    }
-    addStaff(draft);
+    // Always auto-generate — never trust user input for employee number.
+    const generated = nextEmployeeNumber(staff);
+    addStaff({ ...draft, employeeNumber: generated });
     setAddOpen(false);
-    toast.success(`${draft.firstName} ${draft.lastName} added`);
+    toast.success(`${draft.firstName} ${draft.lastName} added as ${generated}`);
   };
 
   const submitEdit = () => {
@@ -235,17 +233,7 @@ function Settings() {
         </TabsContent>
 
         <TabsContent value="profile" className="mt-4">
-          <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="grid h-16 w-16 place-items-center rounded-full bg-gov text-xl font-bold text-gov-foreground">
-                {user?.name?.split(" ").map((w) => w[0]).join("").slice(0, 2) ?? "RG"}
-              </div>
-              <div>
-                <p className="font-display text-lg font-bold">{user?.name}</p>
-                <p className="text-sm text-muted-foreground">{user?.role} · Employee {user?.employeeNumber}</p>
-              </div>
-            </div>
-          </div>
+          <MyProfile />
         </TabsContent>
       </Tabs>
 
@@ -257,6 +245,7 @@ function Settings() {
         onOpenChange={setAddOpen}
         onSubmit={submitAdd}
         submitLabel="Add staff"
+        mode="add"
       />
       <StaffDialog
         open={!!editingId}
@@ -267,6 +256,7 @@ function Settings() {
         onSubmit={submitEdit}
         submitLabel="Save changes"
         onDelete={isAdmin && editingId ? requestDelete : undefined}
+        mode="edit"
       />
       <ConfirmModal
         open={!!confirmDeleteId}
@@ -281,8 +271,67 @@ function Settings() {
   );
 }
 
+function MyProfile() {
+  const user = useAuth((s) => s.user);
+  const { staff, updateStaff } = useStaff();
+  const me = staff.find((s) => s.employeeNumber === user?.employeeNumber);
+  const [phone, setPhone] = useState(me?.phone ?? "");
+  const [password, setPassword] = useState(me?.password ?? "");
+  const [confirm, setConfirm] = useState(me?.password ?? "");
+
+  if (!user || !me) {
+    return <p className="text-sm text-muted-foreground">Sign in to view your profile.</p>;
+  }
+
+  const save = () => {
+    if (!phone.trim()) { toast.error("Phone number is required."); return; }
+    if (password.length < 4) { toast.error("Password must be at least 4 characters."); return; }
+    if (password !== confirm) { toast.error("Passwords do not match."); return; }
+    updateStaff(me.id, { phone: phone.trim(), password });
+    toast.success("Profile updated");
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="grid h-16 w-16 place-items-center rounded-full bg-gov text-xl font-bold text-gov-foreground">
+            {user.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
+          </div>
+          <div>
+            <p className="font-display text-lg font-bold">{user.name}</p>
+            <p className="text-sm text-muted-foreground">{user.role} · Employee {user.employeeNumber}</p>
+            <p className="text-xs text-muted-foreground">{me.email}</p>
+          </div>
+        </div>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h3 className="font-display font-bold">Edit my details</h3>
+        <p className="text-xs text-muted-foreground">You can update your phone number and password. For other changes, contact an Administrator.</p>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Phone number</Label>
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+263 ..." />
+          </div>
+          <div className="space-y-1.5">
+            <Label>New password</Label>
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 4 characters" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Confirm password</Label>
+            <Input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Repeat password" />
+          </div>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <Button onClick={save}>Save changes</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StaffDialog({
-  open, title, draft, setDraft, onOpenChange, onSubmit, submitLabel, onDelete,
+  open, title, draft, setDraft, onOpenChange, onSubmit, submitLabel, onDelete, mode = "edit",
 }: {
   open: boolean;
   title: string;
@@ -292,6 +341,7 @@ function StaffDialog({
   onSubmit: () => void;
   submitLabel: string;
   onDelete?: () => void;
+  mode?: "add" | "edit";
 }) {
   const set = (patch: Partial<Draft>) => setDraft({ ...draft, ...patch });
   return (
@@ -323,7 +373,10 @@ function StaffDialog({
           </div>
           <div className="space-y-1.5">
             <Label>Employee number</Label>
-            <Input value={draft.employeeNumber} onChange={(e) => set({ employeeNumber: e.target.value })} placeholder="RG-XXXXX" />
+            <Input value={draft.employeeNumber} disabled readOnly placeholder="Auto-generated" />
+            <p className="text-[11px] text-muted-foreground">
+              {mode === "add" ? "Auto-generated on save." : "Employee number cannot be changed."}
+            </p>
           </div>
           <div className="space-y-1.5">
             <Label>Role</Label>
