@@ -209,9 +209,15 @@
 
   body:has(.print-birth-certificate, .print-id-card) .print-document-dialog {
     position: absolute !important;
+    top: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: 0 !important;
     inset: 0 !important;
     transform: none !important;
-    translate: none !important;
+    translate: 0 0 !important;
+    --tw-translate-x: 0 !important;
+    --tw-translate-y: 0 !important;
     width: 210mm !important;
     min-width: 210mm !important;
     max-width: 210mm !important;
