@@ -169,7 +169,7 @@
 
   html, body {
     width: 210mm !important;
-    height: 297mm !important;
+    height: 296mm !important;
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
@@ -184,8 +184,8 @@
   body:has(.print-birth-certificate, .print-id-card),
   body:has(.print-birth-certificate, .print-id-card) #root {
     width: 210mm !important;
-    height: 297mm !important;
-    max-height: 297mm !important;
+    height: 296mm !important;
+    max-height: 296mm !important;
     overflow: hidden !important;
   }
 
@@ -225,9 +225,9 @@
     width: 210mm !important;
     min-width: 210mm !important;
     max-width: 210mm !important;
-    height: 297mm !important;
-    min-height: 297mm !important;
-    max-height: 297mm !important;
+    height: 296mm !important;
+    min-height: 296mm !important;
+    max-height: 296mm !important;
     display: block !important;
     background: white !important;
     border: 0 !important;
@@ -247,9 +247,9 @@
     width: 210mm !important;
     min-width: 210mm !important;
     max-width: 210mm !important;
-    height: 297mm !important;
-    min-height: 297mm !important;
-    max-height: 297mm !important;
+    height: 296mm !important;
+    min-height: 296mm !important;
+    max-height: 296mm !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
