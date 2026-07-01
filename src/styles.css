@@ -188,6 +188,16 @@
     print-color-adjust: exact;
   }
 
+  /* Collapse the dashboard layout while a print template is present, so
+     the browser only paginates the single A4 sheet the template occupies. */
+  body:has(.print-birth-certificate, .print-id-card),
+  body:has(.print-birth-certificate, .print-id-card) #root {
+    width: 210mm !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+  }
+
   /* Hide everything on the page. */
   body:has(.print-birth-certificate, .print-id-card) * {
     visibility: hidden !important;
