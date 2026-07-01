@@ -103,7 +103,7 @@ function Approved() {
       </Tabs>
 
       <Dialog open={!!preview} onOpenChange={(v) => { if (!v) setPreview(null); }}>
-        <DialogContent className="max-w-5xl">
+        <DialogContent className="print-document-dialog max-w-5xl">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>
@@ -130,7 +130,7 @@ function Approved() {
               </div>
             </DialogTitle>
           </DialogHeader>
-          <div className="max-h-[75vh] overflow-auto bg-muted p-6">
+          <div className="print-document-host max-h-[75vh] overflow-auto bg-muted p-6">
             {preview?.kind === "birth" ? <BirthCertificatePrint app={preview.app} /> : null}
             {preview?.kind === "nationalId" ? <NationalIdCardPrint app={preview.app} /> : null}
             {preview?.kind === "recovery" ? <RecoverySlip app={preview.app} /> : null}

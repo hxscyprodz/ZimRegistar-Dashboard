@@ -104,14 +104,14 @@ function Page() {
         onConfirm={(reason) => { reject("nationalId", app.id, reason, user?.name ?? "Officer"); setRejectOpen(false); toast.success("Rejected"); }} />
 
       <Dialog open={printOpen} onOpenChange={setPrintOpen}>
-        <DialogContent className="max-w-5xl">
+        <DialogContent className="print-document-dialog max-w-5xl">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>National ID Card Preview</span>
               <Button size="sm" variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" />Print</Button>
             </DialogTitle>
           </DialogHeader>
-          <div className="max-h-[75vh] overflow-auto bg-muted p-6">
+          <div className="print-document-host max-h-[75vh] overflow-auto bg-muted p-6">
             <NationalIdCardPrint app={app} />
           </div>
         </DialogContent>
