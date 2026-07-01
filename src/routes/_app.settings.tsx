@@ -271,6 +271,65 @@ function Settings() {
   );
 }
 
+function MyProfile() {
+  const user = useAuth((s) => s.user);
+  const { staff, updateStaff } = useStaff();
+  const me = staff.find((s) => s.employeeNumber === user?.employeeNumber);
+  const [phone, setPhone] = useState(me?.phone ?? "");
+  const [password, setPassword] = useState(me?.password ?? "");
+  const [confirm, setConfirm] = useState(me?.password ?? "");
+
+  if (!user || !me) {
+    return <p className="text-sm text-muted-foreground">Sign in to view your profile.</p>;
+  }
+
+  const save = () => {
+    if (!phone.trim()) { toast.error("Phone number is required."); return; }
+    if (password.length < 4) { toast.error("Password must be at least 4 characters."); return; }
+    if (password !== confirm) { toast.error("Passwords do not match."); return; }
+    updateStaff(me.id, { phone: phone.trim(), password });
+    toast.success("Profile updated");
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="grid h-16 w-16 place-items-center rounded-full bg-gov text-xl font-bold text-gov-foreground">
+            {user.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
+          </div>
+          <div>
+            <p className="font-display text-lg font-bold">{user.name}</p>
+            <p className="text-sm text-muted-foreground">{user.role} · Employee {user.employeeNumber}</p>
+            <p className="text-xs text-muted-foreground">{me.email}</p>
+          </div>
+        </div>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h3 className="font-display font-bold">Edit my details</h3>
+        <p className="text-xs text-muted-foreground">You can update your phone number and password. For other changes, contact an Administrator.</p>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Phone number</Label>
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+263 ..." />
+          </div>
+          <div className="space-y-1.5">
+            <Label>New password</Label>
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 4 characters" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Confirm password</Label>
+            <Input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Repeat password" />
+          </div>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <Button onClick={save}>Save changes</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StaffDialog({
   open, title, draft, setDraft, onOpenChange, onSubmit, submitLabel, onDelete, mode = "edit",
 }: {
