@@ -282,7 +282,7 @@ function Settings() {
 }
 
 function StaffDialog({
-  open, title, draft, setDraft, onOpenChange, onSubmit, submitLabel, onDelete,
+  open, title, draft, setDraft, onOpenChange, onSubmit, submitLabel, onDelete, mode = "edit",
 }: {
   open: boolean;
   title: string;
@@ -292,6 +292,7 @@ function StaffDialog({
   onSubmit: () => void;
   submitLabel: string;
   onDelete?: () => void;
+  mode?: "add" | "edit";
 }) {
   const set = (patch: Partial<Draft>) => setDraft({ ...draft, ...patch });
   return (
@@ -323,7 +324,10 @@ function StaffDialog({
           </div>
           <div className="space-y-1.5">
             <Label>Employee number</Label>
-            <Input value={draft.employeeNumber} onChange={(e) => set({ employeeNumber: e.target.value })} placeholder="RG-XXXXX" />
+            <Input value={draft.employeeNumber} disabled readOnly placeholder="Auto-generated" />
+            <p className="text-[11px] text-muted-foreground">
+              {mode === "add" ? "Auto-generated on save." : "Employee number cannot be changed."}
+            </p>
           </div>
           <div className="space-y-1.5">
             <Label>Role</Label>
