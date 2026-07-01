@@ -233,17 +233,7 @@ function Settings() {
         </TabsContent>
 
         <TabsContent value="profile" className="mt-4">
-          <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="grid h-16 w-16 place-items-center rounded-full bg-gov text-xl font-bold text-gov-foreground">
-                {user?.name?.split(" ").map((w) => w[0]).join("").slice(0, 2) ?? "RG"}
-              </div>
-              <div>
-                <p className="font-display text-lg font-bold">{user?.name}</p>
-                <p className="text-sm text-muted-foreground">{user?.role} · Employee {user?.employeeNumber}</p>
-              </div>
-            </div>
-          </div>
+          <MyProfile />
         </TabsContent>
       </Tabs>
 
