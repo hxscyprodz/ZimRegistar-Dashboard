@@ -196,6 +196,10 @@
     transition: none !important;
   }
 
+  body:has(.print-birth-certificate, .print-id-card) > :not(.print-document-dialog) {
+    display: none !important;
+  }
+
   body:has(.print-birth-certificate, .print-id-card) .print-document-dialog,
   body:has(.print-birth-certificate, .print-id-card) .print-document-dialog *,
   body:has(.print-birth-certificate, .print-id-card) .print-document-host,
