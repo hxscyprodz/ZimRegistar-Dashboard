@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useUI, useAuth, useStaff, type StaffMember, type Role } from "@/lib/store";
+import { useUI, useAuth, useStaff, nextEmployeeNumber, type StaffMember, type Role } from "@/lib/store";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Input } from "@/components/ui/input";
@@ -59,7 +59,7 @@ function Settings() {
       toast.error("Only Administrators can add staff.");
       return;
     }
-    setDraft(emptyDraft());
+    setDraft({ ...emptyDraft(), employeeNumber: nextEmployeeNumber(staff) });
     setAddOpen(true);
   };
 
@@ -95,13 +95,11 @@ function Settings() {
   const submitAdd = () => {
     const err = validate(draft);
     if (err) { toast.error(err); return; }
-    if (staff.some((s) => s.employeeNumber.toLowerCase() === draft.employeeNumber.toLowerCase())) {
-      toast.error("Employee number already exists.");
-      return;
-    }
-    addStaff(draft);
+    // Always auto-generate — never trust user input for employee number.
+    const generated = nextEmployeeNumber(staff);
+    addStaff({ ...draft, employeeNumber: generated });
     setAddOpen(false);
-    toast.success(`${draft.firstName} ${draft.lastName} added`);
+    toast.success(`${draft.firstName} ${draft.lastName} added as ${generated}`);
   };
 
   const submitEdit = () => {
@@ -257,6 +255,7 @@ function Settings() {
         onOpenChange={setAddOpen}
         onSubmit={submitAdd}
         submitLabel="Add staff"
+        mode="add"
       />
       <StaffDialog
         open={!!editingId}
@@ -267,6 +266,7 @@ function Settings() {
         onSubmit={submitEdit}
         submitLabel="Save changes"
         onDelete={isAdmin && editingId ? requestDelete : undefined}
+        mode="edit"
       />
       <ConfirmModal
         open={!!confirmDeleteId}
