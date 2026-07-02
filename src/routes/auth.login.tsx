@@ -114,6 +114,7 @@ function LoginPage() {
             <div className="rounded-lg border border-dashed border-border bg-muted/40 p-3 text-xs">
               <p className="mb-1 font-semibold text-foreground">Demo credentials</p>
               <ul className="space-y-0.5 text-muted-foreground">
+                <li><span className="font-mono">RG-00001</span> / <span className="font-mono">root1234</span> · Super Administrator</li>
                 <li><span className="font-mono">RG-01902</span> / <span className="font-mono">admin1234</span> · Administrator</li>
                 <li><span className="font-mono">RG-03317</span> / <span className="font-mono">super1234</span> · Supervisor</li>
                 <li><span className="font-mono">RG-04821</span> / <span className="font-mono">officer1234</span> · Registrar Officer</li>
