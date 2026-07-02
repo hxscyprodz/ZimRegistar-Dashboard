@@ -10,7 +10,7 @@ import { NationalIdCardPrint } from "@/components/print/NationalIdCardPrint";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useApps } from "@/lib/store";
+import { useApps, useUserStation, filterByStation } from "@/lib/store";
 import type { BirthCertificateApp, NationalIdApp } from "@/lib/types";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_app/printing-center")({
 
 function Print() {
   const { birth, nationalId, markPrinted } = useApps();
+  const stationId = useUserStation();
   const [q, setQ] = useState("");
   const [confirmId, setConfirmId] = useState<{ kind: "birth" | "nationalId"; id: string } | null>(null);
   const [preview, setPreview] = useState<PrintableApp | null>(null);
@@ -32,7 +33,7 @@ function Print() {
     const ql = q.toLowerCase();
     const matches = (values: Array<string | undefined>) =>
       ql.trim() === "" || values.some((value) => value?.toLowerCase().includes(ql));
-    const bx = birth.filter((a) => a.status === "Approved" && a.printStatus !== "Printed" && matches([
+    const bx = filterByStation(birth, stationId).filter((a) => a.status === "Approved" && a.printStatus !== "Printed" && matches([
       a.applicantName,
       a.applicationNumber,
       a.child.firstName,
@@ -42,7 +43,7 @@ function Print() {
       a.child.cityOfBirth,
     ]))
       .map((a) => ({ ...a, kind: "birth" as const }));
-    const nx = nationalId.filter((a) => a.status === "Approved" && a.printStatus !== "Printed" && matches([
+    const nx = filterByStation(nationalId, stationId).filter((a) => a.status === "Approved" && a.printStatus !== "Printed" && matches([
       a.applicantName,
       a.applicationNumber,
       a.applicant.firstName,
@@ -52,7 +53,7 @@ function Print() {
     ]))
       .map((a) => ({ ...a, kind: "nationalId" as const }));
     return [...bx, ...nx];
-  }, [q, birth, nationalId]);
+  }, [q, birth, nationalId, stationId]);
 
   return (
     <div>

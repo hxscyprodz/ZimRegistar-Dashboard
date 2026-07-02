@@ -8,7 +8,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { Pagination } from "@/components/common/Pagination";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
-import { useApps } from "@/lib/store";
+import { useApps, useUserStation, filterByStation } from "@/lib/store";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/_app/applications/birth-certificates")({
@@ -24,7 +24,9 @@ function BirthCertificateRoute() {
 }
 
 function BirthCertList() {
-  const birth = useApps((s) => s.birth);
+  const birthAll = useApps((s) => s.birth);
+  const stationId = useUserStation();
+  const birth = useMemo(() => filterByStation(birthAll, stationId), [birthAll, stationId]);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("All");
   const [sort, setSort] = useState("date-desc");

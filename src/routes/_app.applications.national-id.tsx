@@ -8,7 +8,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { Pagination } from "@/components/common/Pagination";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
-import { useApps } from "@/lib/store";
+import { useApps, useUserStation, filterByStation } from "@/lib/store";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/_app/applications/national-id")({
@@ -24,7 +24,9 @@ function NationalIdRoute() {
 }
 
 function NIDList() {
-  const list = useApps((s) => s.nationalId);
+  const listAll = useApps((s) => s.nationalId);
+  const stationId = useUserStation();
+  const list = useMemo(() => filterByStation(listAll, stationId), [listAll, stationId]);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("All");
   const [sort, setSort] = useState("date-desc");
