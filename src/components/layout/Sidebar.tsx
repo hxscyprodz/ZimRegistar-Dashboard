@@ -18,9 +18,6 @@ const staffItems = [
 
 const superAdminItems = [
   { to: "/super-admin", label: "System Overview", icon: Crown },
-  { to: "/super-admin/stations", label: "Stations", icon: Building2 },
-  { to: "/super-admin/staff", label: "All Staff", icon: Users },
-  { to: "/super-admin/applications", label: "All Applications", icon: FileStack },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
