@@ -25,15 +25,17 @@ function Page() {
   const app = useApps((s) => s.birth.find((a) => a.id === id));
   const { approve, reject } = useApps();
   const user = useAuth((s) => s.user);
+  const isSuper = user?.role === "Super Administrator";
+  const isOtherStation = user && !isSuper && app && user.stationId !== app.stationId;
   const [approveOpen, setApproveOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
 
-  if (!app) {
+  if (!app || isOtherStation) {
     return (
       <div className="rounded-xl border border-border bg-card p-8 text-center">
-        <p className="font-semibold">Application not found.</p>
+        <p className="font-semibold">{isOtherStation ? "This application belongs to another station." : "Application not found."}</p>
         <Link to="/applications/birth-certificates" className="mt-2 inline-block text-sm text-gov hover:underline">Back to list</Link>
       </div>
     );
@@ -77,13 +79,13 @@ function Page() {
             </Card>
           </div>
 
-          <Card title="Uploaded Documents">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <DocumentCard label="Hospital Birth Record" src={app.documents.hospitalRecord} />
-              <DocumentCard label="Mother's National ID" src={app.documents.motherId} />
-              <DocumentCard label="Father's National ID" src={app.documents.fatherId} />
-            </div>
-          </Card>
+          {app.documents?.birthCertificate ? (
+            <Card title="Uploaded Birth Certificate">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <DocumentCard label="Birth Certificate" src={app.documents.birthCertificate} />
+              </div>
+            </Card>
+          ) : null}
 
           {app.status === "Rejected" && app.rejectionReason ? (
             <Card title="Rejection Details">
@@ -102,7 +104,7 @@ function Page() {
             <div className="mt-4 space-y-2">
               <Button
                 className="w-full bg-emerald-600 text-white hover:bg-emerald-600/90"
-                disabled={app.status !== "Pending"}
+                disabled={app.status !== "Pending" || isSuper}
                 onClick={() => setApproveOpen(true)}
               >
                 <Check className="mr-2 h-4 w-4" /> Approve Application
@@ -110,11 +112,14 @@ function Page() {
               <Button
                 variant="destructive"
                 className="w-full"
-                disabled={app.status !== "Pending"}
+                disabled={app.status !== "Pending" || isSuper}
                 onClick={() => setRejectOpen(true)}
               >
                 <X className="mr-2 h-4 w-4" /> Reject Application
               </Button>
+              {isSuper ? (
+                <p className="text-xs text-muted-foreground">System administrators have view-only access to applications.</p>
+              ) : null}
             </div>
           </div>
 

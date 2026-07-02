@@ -8,7 +8,7 @@ import { FileText, IdCard, FileSearch, CheckCircle2, Clock, XCircle, FileStack, 
 import { StatisticsCard } from "@/components/common/StatisticsCard";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { useApps } from "@/lib/store";
+import { useApps, useUserStation, filterByStation } from "@/lib/store";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/_app/dashboard")({
@@ -17,7 +17,11 @@ export const Route = createFileRoute("/_app/dashboard")({
 });
 
 function DashboardPage() {
-  const { birth, nationalId, recovery } = useApps();
+  const apps = useApps();
+  const stationId = useUserStation();
+  const birth = useMemo(() => filterByStation(apps.birth, stationId), [apps.birth, stationId]);
+  const nationalId = useMemo(() => filterByStation(apps.nationalId, stationId), [apps.nationalId, stationId]);
+  const recovery = useMemo(() => filterByStation(apps.recovery, stationId), [apps.recovery, stationId]);
   const all = useMemo(() => [...birth, ...nationalId, ...recovery], [birth, nationalId, recovery]);
 
   const total = all.length;

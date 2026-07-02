@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BirthCertificatePrint } from "@/components/print/BirthCertificatePrint";
 import { NationalIdCardPrint } from "@/components/print/NationalIdCardPrint";
-import { useApps } from "@/lib/store";
+import { useApps, useUserStation, filterByStation } from "@/lib/store";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import type { BirthCertificateApp, NationalIdApp, RecoveryApp } from "@/lib/types";
@@ -28,6 +28,7 @@ type Preview =
 
 function Approved() {
   const { birth, nationalId, recovery, markPrinted } = useApps();
+  const stationId = useUserStation();
   const [q, setQ] = useState("");
   const [preview, setPreview] = useState<Preview | null>(null);
 
@@ -36,9 +37,9 @@ function Approved() {
       a.applicantName.toLowerCase().includes(q.toLowerCase()) ||
       a.applicationNumber.toLowerCase().includes(q.toLowerCase())));
 
-  const aBirth = useMemo(() => filter(birth), [birth, q]);
-  const aNid = useMemo(() => filter(nationalId), [nationalId, q]);
-  const aRec = useMemo(() => filter(recovery), [recovery, q]);
+  const aBirth = useMemo(() => filter(filterByStation(birth, stationId)), [birth, q, stationId]);
+  const aNid = useMemo(() => filter(filterByStation(nationalId, stationId)), [nationalId, q, stationId]);
+  const aRec = useMemo(() => filter(filterByStation(recovery, stationId)), [recovery, q, stationId]);
 
   const openPreview = (kind: Kind, app: BirthCertificateApp | NationalIdApp | RecoveryApp) => {
     if (kind === "birth") setPreview({ kind, app: app as BirthCertificateApp });

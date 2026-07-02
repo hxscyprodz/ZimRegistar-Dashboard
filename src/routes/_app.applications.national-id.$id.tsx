@@ -24,14 +24,16 @@ function Page() {
   const app = useApps((s) => s.nationalId.find((a) => a.id === id));
   const { approve, reject } = useApps();
   const user = useAuth((s) => s.user);
+  const isSuper = user?.role === "Super Administrator";
+  const isOtherStation = user && !isSuper && app && user.stationId !== app.stationId;
   const [approveOpen, setApproveOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
 
-  if (!app) return (
+  if (!app || isOtherStation) return (
     <div className="rounded-xl border border-border bg-card p-8 text-center">
-      Application not found.
+      {isOtherStation ? "This application belongs to another station." : "Application not found."}
       <div><Link to="/applications/national-id" className="text-gov hover:underline">Back</Link></div>
     </div>
   );
@@ -80,10 +82,10 @@ function Page() {
             <h3 className="font-display text-base font-bold">Actions</h3>
             <div className="mt-3 space-y-2">
               <Button className="w-full bg-emerald-600 text-white hover:bg-emerald-600/90"
-                disabled={app.status !== "Pending"} onClick={() => setApproveOpen(true)}>
+                disabled={app.status !== "Pending" || isSuper} onClick={() => setApproveOpen(true)}>
                 <Check className="mr-2 h-4 w-4" /> Approve
               </Button>
-              <Button variant="destructive" className="w-full" disabled={app.status !== "Pending"} onClick={() => setRejectOpen(true)}>
+              <Button variant="destructive" className="w-full" disabled={app.status !== "Pending" || isSuper} onClick={() => setRejectOpen(true)}>
                 <X className="mr-2 h-4 w-4" /> Reject
               </Button>
               <Button variant="outline" className="w-full" disabled={app.status !== "Approved"} onClick={() => setPrintOpen(true)}>

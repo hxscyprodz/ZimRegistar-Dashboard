@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bell, CheckCircle2, FileText, IdCard, FileSearch } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
-import { useApps } from "@/lib/store";
+import { useApps, useUserStation, filterByStation } from "@/lib/store";
 import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/_app/notifications")({
@@ -10,9 +10,13 @@ export const Route = createFileRoute("/_app/notifications")({
 });
 
 function NotificationsPage() {
-  const birth = useApps((s) => s.birth);
-  const nationalId = useApps((s) => s.nationalId);
-  const recovery = useApps((s) => s.recovery);
+  const birthAll = useApps((s) => s.birth);
+  const nationalIdAll = useApps((s) => s.nationalId);
+  const recoveryAll = useApps((s) => s.recovery);
+  const stationId = useUserStation();
+  const birth = filterByStation(birthAll, stationId);
+  const nationalId = filterByStation(nationalIdAll, stationId);
+  const recovery = filterByStation(recoveryAll, stationId);
 
   type Item = {
     id: string;

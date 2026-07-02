@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, FileText, IdCard, FileSearch, CheckCircle2, Printer, BarChart3, Settings, Shield, ChevronLeft,
+  LayoutDashboard, FileText, IdCard, FileSearch, CheckCircle2, Printer, BarChart3, Settings, Shield, ChevronLeft, Crown,
 } from "lucide-react";
 import { useUI, useAuth } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-const items = [
+const staffItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/applications/birth-certificates", label: "Birth Certificates", icon: FileText },
   { to: "/applications/national-id", label: "National ID", icon: IdCard },
@@ -16,11 +16,19 @@ const items = [
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
+const superAdminItems = [
+  { to: "/super-admin", label: "System Overview", icon: Crown },
+  { to: "/settings", label: "Settings", icon: Settings },
+] as const;
+
 export function Sidebar() {
   const { sidebarCollapsed, toggleSidebar } = useUI();
   const role = useAuth((s) => s.user?.role);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const visibleItems = items.filter((it) => !(it.to === "/reports" && role === "Registrar Officer"));
+  const isSuper = role === "Super Administrator";
+  const visibleItems = isSuper
+    ? superAdminItems
+    : staffItems.filter((it) => !(it.to === "/reports" && role === "Registrar Officer"));
   return (
     <aside
       className={cn(

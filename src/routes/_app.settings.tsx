@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useUI, useAuth, useStaff, nextEmployeeNumber, type StaffMember, type Role } from "@/lib/store";
+import { useUI, useAuth, useStaff, useStations, nextEmployeeNumber, type StaffMember, type Role } from "@/lib/store";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Input } from "@/components/ui/input";
@@ -26,11 +26,12 @@ type Draft = {
   nationalId: string;
   employeeNumber: string;
   role: Role;
+  stationId: string;
   password: string;
   active: boolean;
 };
 
-const emptyDraft = (): Draft => ({
+const emptyDraft = (defaultStation = ""): Draft => ({
   firstName: "",
   lastName: "",
   email: "",
@@ -38,6 +39,7 @@ const emptyDraft = (): Draft => ({
   nationalId: "",
   employeeNumber: "",
   role: "Registrar Officer",
+  stationId: defaultStation,
   password: "",
   active: true,
 });
@@ -46,6 +48,7 @@ function Settings() {
   const { dark, toggleDark } = useUI();
   const user = useAuth((s) => s.user);
   const { staff, addStaff, updateStaff, toggleActive, deleteStaff } = useStaff();
+  const stations = useStations((s) => s.stations);
   const isAdmin = user?.role === "Administrator";
   const [notifEmail, setNotifEmail] = useState(true);
   const [notifPush, setNotifPush] = useState(false);
@@ -59,7 +62,10 @@ function Settings() {
       toast.error("Only Administrators can add staff.");
       return;
     }
-    setDraft({ ...emptyDraft(), employeeNumber: nextEmployeeNumber(staff) });
+    setDraft({
+      ...emptyDraft(user?.stationId ?? stations[0]?.id ?? ""),
+      employeeNumber: nextEmployeeNumber(staff),
+    });
     setAddOpen(true);
   };
 
@@ -77,6 +83,7 @@ function Settings() {
       nationalId: s.nationalId,
       employeeNumber: s.employeeNumber,
       role: s.role,
+      stationId: s.stationId,
       password: s.password,
       active: s.active,
     });
@@ -88,6 +95,7 @@ function Settings() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return "Enter a valid email address.";
     if (!d.phone.trim()) return "Phone number is required.";
     if (!d.nationalId.trim()) return "National ID is required.";
+    if (!d.stationId.trim()) return "Please assign a station.";
     if (d.password.length < 4) return "Password must be at least 4 characters.";
     return null;
   };
@@ -97,7 +105,9 @@ function Settings() {
     if (err) { toast.error(err); return; }
     // Always auto-generate — never trust user input for employee number.
     const generated = nextEmployeeNumber(staff);
-    addStaff({ ...draft, employeeNumber: generated });
+    // Registrar administrators can only create staff at their own station.
+    const stationId = user?.role === "Administrator" ? (user?.stationId ?? draft.stationId) : draft.stationId;
+    addStaff({ ...draft, stationId, employeeNumber: generated });
     setAddOpen(false);
     toast.success(`${draft.firstName} ${draft.lastName} added as ${generated}`);
   };
@@ -124,6 +134,11 @@ function Settings() {
     toast.success("Staff deleted");
   };
 
+  // Administrators only see staff at their own station.
+  const visibleStaff = user?.role === "Administrator"
+    ? staff.filter((s) => s.stationId === user.stationId)
+    : staff;
+
   return (
     <div>
       <PageHeader title="Settings" description="Manage staff, roles, theme and notifications." />
@@ -148,12 +163,13 @@ function Settings() {
                   <th className="px-5 py-3 font-medium">Employee #</th>
                   <th className="px-5 py-3 font-medium">Contact</th>
                   <th className="px-5 py-3 font-medium">Role</th>
+                  <th className="px-5 py-3 font-medium">Station</th>
                   <th className="px-5 py-3 font-medium">Status</th>
                   <th className="px-5 py-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {staff.map((s) => (
+                {visibleStaff.map((s) => (
                   <tr key={s.id}>
                     <td className="px-5 py-3 font-medium">
                       {s.firstName} {s.lastName}
@@ -168,6 +184,9 @@ function Settings() {
                       <span className="inline-flex items-center gap-1 rounded-full bg-gov/10 px-2 py-0.5 text-xs font-medium text-gov dark:bg-primary/15 dark:text-primary">
                         <Shield className="h-3 w-3" /> {s.role}
                       </span>
+                    </td>
+                    <td className="px-5 py-3 text-xs text-muted-foreground">
+                      {stations.find((st) => st.id === s.stationId)?.name ?? s.stationId}
                     </td>
                     <td className="px-5 py-3 text-xs">{s.active ? <span className="text-emerald-600">Active</span> : <span className="text-muted-foreground">Suspended</span>}</td>
                     <td className="px-5 py-3 text-right">
@@ -246,6 +265,8 @@ function Settings() {
         onSubmit={submitAdd}
         submitLabel="Add staff"
         mode="add"
+        stations={stations}
+        lockStation={user?.role === "Administrator"}
       />
       <StaffDialog
         open={!!editingId}
@@ -257,6 +278,8 @@ function Settings() {
         submitLabel="Save changes"
         onDelete={isAdmin && editingId ? requestDelete : undefined}
         mode="edit"
+        stations={stations}
+        lockStation={user?.role === "Administrator"}
       />
       <ConfirmModal
         open={!!confirmDeleteId}
@@ -331,7 +354,7 @@ function MyProfile() {
 }
 
 function StaffDialog({
-  open, title, draft, setDraft, onOpenChange, onSubmit, submitLabel, onDelete, mode = "edit",
+  open, title, draft, setDraft, onOpenChange, onSubmit, submitLabel, onDelete, mode = "edit", stations, lockStation,
 }: {
   open: boolean;
   title: string;
@@ -342,6 +365,8 @@ function StaffDialog({
   submitLabel: string;
   onDelete?: () => void;
   mode?: "add" | "edit";
+  stations: { id: string; name: string }[];
+  lockStation?: boolean;
 }) {
   const set = (patch: Partial<Draft>) => setDraft({ ...draft, ...patch });
   return (
@@ -388,6 +413,20 @@ function StaffDialog({
                 <SelectItem value="Registrar Officer">Registrar Officer</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Station</Label>
+            <Select value={draft.stationId} onValueChange={(v) => set({ stationId: v })} disabled={lockStation}>
+              <SelectTrigger><SelectValue placeholder="Assign a station" /></SelectTrigger>
+              <SelectContent>
+                {stations.map((st) => (
+                  <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {lockStation ? (
+              <p className="text-[11px] text-muted-foreground">Administrators can only manage staff at their own station.</p>
+            ) : null}
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Password</Label>

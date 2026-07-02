@@ -1,14 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { BirthCertificateApp, NationalIdApp, RecoveryApp, AppStatus, PrintStatus } from "./types";
+import type { BirthCertificateApp, NationalIdApp, RecoveryApp, AppStatus, PrintStatus, Station } from "./types";
 import { seedBirth, seedNationalId, seedRecovery } from "./mockData";
 
-export type Role = "Administrator" | "Supervisor" | "Registrar Officer";
+export type Role = "Super Administrator" | "Administrator" | "Supervisor" | "Registrar Officer";
 
 interface AuthUser {
   employeeNumber: string;
   name: string;
   role: Role;
+  stationId: string; // "ALL" for Super Administrator
 }
 
 export interface StaffMember {
@@ -20,6 +21,7 @@ export interface StaffMember {
   phone: string;
   nationalId: string;
   role: Role;
+  stationId: string; // "ALL" for Super Administrator
   active: boolean;
   password: string;
 }
@@ -35,7 +37,26 @@ export function nextEmployeeNumber(existing: StaffMember[]): string {
   return `RG-${String(next).padStart(5, "0")}`;
 }
 
+export const MOCK_STATIONS: Station[] = [
+  { id: "ST-HRE", name: "Harare Central Registry", province: "Harare", district: "Harare Metro", town: "Harare" },
+  { id: "ST-BYO", name: "Bulawayo Central Registry", province: "Bulawayo", district: "Bulawayo Metro", town: "Bulawayo" },
+  { id: "ST-MUT", name: "Mutare District Registry", province: "Manicaland", district: "Mutare", town: "Mutare" },
+];
+
 export const MOCK_STAFF: StaffMember[] = [
+  {
+    id: "u-0",
+    employeeNumber: "RG-00001",
+    firstName: "Chiedza",
+    lastName: "Marufu",
+    email: "c.marufu@rg.gov.zw",
+    phone: "+263 772 000 001",
+    nationalId: "63-0000001-Z-00",
+    role: "Super Administrator",
+    stationId: "ALL",
+    active: true,
+    password: "root1234",
+  },
   {
     id: "u-1",
     employeeNumber: "RG-01902",
@@ -45,6 +66,7 @@ export const MOCK_STAFF: StaffMember[] = [
     phone: "+263 772 100 001",
     nationalId: "63-1234567-A-12",
     role: "Administrator",
+    stationId: "ST-HRE",
     active: true,
     password: "admin1234",
   },
@@ -57,6 +79,7 @@ export const MOCK_STAFF: StaffMember[] = [
     phone: "+263 772 100 002",
     nationalId: "63-7654321-B-08",
     role: "Supervisor",
+    stationId: "ST-HRE",
     active: true,
     password: "super1234",
   },
@@ -69,6 +92,7 @@ export const MOCK_STAFF: StaffMember[] = [
     phone: "+263 772 100 003",
     nationalId: "63-9988776-C-25",
     role: "Registrar Officer",
+    stationId: "ST-BYO",
     active: true,
     password: "officer1234",
   },
@@ -81,6 +105,7 @@ export const MOCK_STAFF: StaffMember[] = [
     phone: "+263 772 100 004",
     nationalId: "63-5544332-D-19",
     role: "Registrar Officer",
+    stationId: "ST-MUT",
     active: false,
     password: "officer1234",
   },
@@ -108,13 +133,14 @@ export const useAuth = create<AuthState>()(
             employeeNumber: match.employeeNumber,
             name: `${match.firstName} ${match.lastName}`,
             role: match.role,
+            stationId: match.stationId,
           },
         });
         return true;
       },
       logout: () => set({ user: null }),
     }),
-    { name: "rg-auth", version: 2 },
+    { name: "rg-auth", version: 3 },
   ),
 );
 
@@ -147,9 +173,67 @@ export const useStaff = create<StaffState>()(
           staff: state.staff.filter((m) => m.id !== id),
         })),
     }),
-    { name: "rg-staff", version: 1 },
+    { name: "rg-staff", version: 2 },
   ),
 );
+
+interface StationsState {
+  stations: Station[];
+  addStation: (s: Omit<Station, "id">) => void;
+  updateStation: (id: string, patch: Partial<Station>) => void;
+  deleteStation: (id: string) => void;
+}
+
+function nextStationId(existing: Station[]): string {
+  const nums = existing
+    .map((s) => {
+      const m = s.id.match(/ST-(\d+)/i);
+      return m ? parseInt(m[1], 10) : 0;
+    })
+    .filter((n) => !Number.isNaN(n));
+  const next = (nums.length ? Math.max(...nums) : 100) + 1;
+  return `ST-${String(next).padStart(4, "0")}`;
+}
+
+export const useStations = create<StationsState>()(
+  persist(
+    (set, get) => ({
+      stations: MOCK_STATIONS,
+      addStation: (s) =>
+        set((state) => ({
+          stations: [...state.stations, { ...s, id: nextStationId(get().stations) }],
+        })),
+      updateStation: (id, patch) =>
+        set((state) => ({
+          stations: state.stations.map((st) => (st.id === id ? { ...st, ...patch } : st)),
+        })),
+      deleteStation: (id) =>
+        set((state) => ({
+          stations: state.stations.filter((st) => st.id !== id),
+        })),
+    }),
+    { name: "rg-stations", version: 1 },
+  ),
+);
+
+/**
+ * Returns the stationId currently active user is scoped to, or null when
+ * the user is a Super Administrator (sees everything).
+ */
+export function useUserStation(): string | null {
+  const user = useAuth((s) => s.user);
+  if (!user) return null;
+  if (user.role === "Super Administrator") return null;
+  return user.stationId;
+}
+
+export function filterByStation<T extends { stationId: string }>(
+  list: T[],
+  stationId: string | null,
+): T[] {
+  if (!stationId) return list;
+  return list.filter((a) => a.stationId === stationId);
+}
 
 interface UIState {
   sidebarCollapsed: boolean;

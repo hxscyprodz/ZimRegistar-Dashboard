@@ -1,7 +1,6 @@
 import type { BirthCertificateApp, NationalIdApp, RecoveryApp } from "./types";
 
 const PLACEHOLDER_DOC = "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=70";
-const PLACEHOLDER_ID = "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&q=70";
 const PLACEHOLDER_PHOTO = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&q=70";
 
 const firstNames = ["Tatenda", "Chipo", "Tendai", "Rumbidzai", "Tinashe", "Nyasha", "Farai", "Kudzai", "Tafadzwa", "Rutendo", "Munashe", "Anesu"];
@@ -9,6 +8,8 @@ const lastNames = ["Moyo", "Ncube", "Sibanda", "Chikore", "Mhandu", "Mutasa", "D
 const cities = ["Harare", "Bulawayo", "Mutare", "Gweru", "Kwekwe", "Masvingo", "Chinhoyi", "Marondera", "Chitungwiza"];
 const hospitals = ["Parirenyatwa Hospital", "Mpilo Central Hospital", "Sally Mugabe Central", "Chitungwiza Central", "United Bulawayo Hospitals"];
 const stations = ["Harare Central", "Bulawayo Central", "Mutare Central", "Gweru Central", "Avondale Police", "Hatfield Police"];
+const STATION_IDS = ["ST-HRE", "ST-BYO", "ST-MUT"];
+const pickStation = (i: number) => STATION_IDS[i % STATION_IDS.length];
 
 const pick = <T,>(a: T[], i: number) => a[i % a.length];
 const pad = (n: number, l = 6) => n.toString().padStart(l, "0");
@@ -26,6 +27,7 @@ export const seedBirth: BirthCertificateApp[] = Array.from({ length: 14 }, (_, i
     applicantName: `${child} ${surname}`,
     dateSubmitted: isoDaysAgo(i * 2 + 1),
     status,
+    stationId: pickStation(i),
     approvedAt: status === "Approved" ? isoDaysAgo(i) : undefined,
     approvedBy: status === "Approved" ? "T. Moyo" : undefined,
     rejectionReason: status === "Rejected" ? "Hospital record unclear — please resubmit." : undefined,
@@ -53,9 +55,7 @@ export const seedBirth: BirthCertificateApp[] = Array.from({ length: 14 }, (_, i
       nationalId: `63-${pad(2000000 + i * 211, 7)} B ${10 + (i % 80)}`,
     },
     documents: {
-      hospitalRecord: PLACEHOLDER_DOC,
-      motherId: PLACEHOLDER_ID,
-      fatherId: PLACEHOLDER_ID,
+      birthCertificate: PLACEHOLDER_DOC,
     },
   };
 });
@@ -70,6 +70,7 @@ export const seedNationalId: NationalIdApp[] = Array.from({ length: 12 }, (_, i)
     applicantName: `${fn} ${ln}`,
     dateSubmitted: isoDaysAgo(i * 2 + 2),
     status,
+    stationId: pickStation(i + 1),
     approvedAt: status === "Approved" ? isoDaysAgo(i) : undefined,
     approvedBy: status === "Approved" ? "T. Moyo" : undefined,
     rejectionReason: status === "Rejected" ? "Photo does not meet biometric standard." : undefined,
@@ -86,7 +87,6 @@ export const seedNationalId: NationalIdApp[] = Array.from({ length: 12 }, (_, i)
     },
     documents: {
       birthCertificate: PLACEHOLDER_DOC,
-      proofOfResidence: PLACEHOLDER_DOC,
       photo: PLACEHOLDER_PHOTO,
     },
   };
@@ -103,6 +103,7 @@ export const seedRecovery: RecoveryApp[] = Array.from({ length: 8 }, (_, i) => {
     applicantName: `${fn} ${ln}`,
     dateSubmitted: isoDaysAgo(i * 3 + 1),
     status,
+    stationId: pickStation(i + 2),
     approvedAt: status === "Approved" ? isoDaysAgo(i) : undefined,
     rejectionReason: status === "Rejected" ? "Police report number could not be verified." : undefined,
     printStatus: status === "Approved" ? "Not Printed" : undefined,
@@ -120,11 +121,6 @@ export const seedRecovery: RecoveryApp[] = Array.from({ length: 8 }, (_, i) => {
       nationalId: docType === "National ID" ? `63-${pad(3000000 + i * 173, 7)} C ${10 + i}` : undefined,
       address: `${50 + i} Leopold Takawira St, ${pick(cities, i)}`,
       contactNumber: `+263 71 ${pad(2000000 + i * 419, 7)}`,
-    },
-    documents: {
-      policeReport: PLACEHOLDER_DOC,
-      affidavit: PLACEHOLDER_DOC,
-      photoId: PLACEHOLDER_ID,
     },
   };
 });
