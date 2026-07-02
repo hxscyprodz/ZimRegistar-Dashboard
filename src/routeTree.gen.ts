@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AppSuperAdminRouteImport } from './routes/_app.super-admin'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppPrintingCenterRouteImport } from './routes/_app.printing-center'
@@ -38,6 +39,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppSuperAdminRoute = AppSuperAdminRouteImport.update({
+  id: '/super-admin',
+  path: '/super-admin',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/printing-center': typeof AppPrintingCenterRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
+  '/super-admin': typeof AppSuperAdminRoute
   '/auth/login': typeof AuthLoginRoute
   '/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRouteWithChildren
   '/applications/document-recovery': typeof AppApplicationsDocumentRecoveryRouteWithChildren
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/printing-center': typeof AppPrintingCenterRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRoute
+  '/super-admin': typeof AppSuperAdminRoute
   '/auth/login': typeof AuthLoginRoute
   '/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRouteWithChildren
   '/applications/document-recovery': typeof AppApplicationsDocumentRecoveryRouteWithChildren
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/_app/printing-center': typeof AppPrintingCenterRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/super-admin': typeof AppSuperAdminRoute
   '/auth/login': typeof AuthLoginRoute
   '/_app/applications/birth-certificates': typeof AppApplicationsBirthCertificatesRouteWithChildren
   '/_app/applications/document-recovery': typeof AppApplicationsDocumentRecoveryRouteWithChildren
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/printing-center'
     | '/reports'
     | '/settings'
+    | '/super-admin'
     | '/auth/login'
     | '/applications/birth-certificates'
     | '/applications/document-recovery'
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/printing-center'
     | '/reports'
     | '/settings'
+    | '/super-admin'
     | '/auth/login'
     | '/applications/birth-certificates'
     | '/applications/document-recovery'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/_app/printing-center'
     | '/_app/reports'
     | '/_app/settings'
+    | '/_app/super-admin'
     | '/auth/login'
     | '/_app/applications/birth-certificates'
     | '/_app/applications/document-recovery'
@@ -236,6 +248,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/login'
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/super-admin': {
+      id: '/_app/super-admin'
+      path: '/super-admin'
+      fullPath: '/super-admin'
+      preLoaderRoute: typeof AppSuperAdminRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/settings': {
       id: '/_app/settings'
@@ -375,6 +394,7 @@ interface AppRouteChildren {
   AppPrintingCenterRoute: typeof AppPrintingCenterRoute
   AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppSuperAdminRoute: typeof AppSuperAdminRoute
   AppApplicationsBirthCertificatesRoute: typeof AppApplicationsBirthCertificatesRouteWithChildren
   AppApplicationsDocumentRecoveryRoute: typeof AppApplicationsDocumentRecoveryRouteWithChildren
   AppApplicationsNationalIdRoute: typeof AppApplicationsNationalIdRouteWithChildren
@@ -387,6 +407,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPrintingCenterRoute: AppPrintingCenterRoute,
   AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppSuperAdminRoute: AppSuperAdminRoute,
   AppApplicationsBirthCertificatesRoute:
     AppApplicationsBirthCertificatesRouteWithChildren,
   AppApplicationsDocumentRecoveryRoute:
