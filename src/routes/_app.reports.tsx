@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { Download, FileSpreadsheet, FileText, ShieldAlert } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
-import { useApps, useAuth } from "@/lib/store";
+import { useApps, useAuth, useUserStation, filterByStation } from "@/lib/store";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area, PieChart, Pie, Cell, Legend } from "recharts";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -33,7 +33,11 @@ function Reports() {
   }
 
   const { birth, nationalId, recovery } = useApps();
-  const all = [...birth, ...nationalId, ...recovery];
+  const stationId = useUserStation();
+  const birthF = filterByStation(birth, stationId);
+  const nidF = filterByStation(nationalId, stationId);
+  const recF = filterByStation(recovery, stationId);
+  const all = [...birthF, ...nidF, ...recF];
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
   const daily = all.filter((a) => +new Date(a.dateSubmitted) >= +today).length;
@@ -44,9 +48,9 @@ function Reports() {
   const printed = [...birth, ...nationalId, ...recovery].filter((a) => a.printStatus === "Printed").length;
 
   const byType = [
-    { name: "Birth", value: birth.length, color: "#0A3D91" },
-    { name: "National ID", value: nationalId.length, color: "#D4AF37" },
-    { name: "Recovery", value: recovery.length, color: "#5B7BBA" },
+    { name: "Birth", value: birthF.length, color: "#0A3D91" },
+    { name: "National ID", value: nidF.length, color: "#D4AF37" },
+    { name: "Recovery", value: recF.length, color: "#5B7BBA" },
   ];
 
   const trend = useMemo(() => Array.from({ length: 30 }, (_, i) => {
@@ -205,9 +209,9 @@ function Reports() {
         <div className="h-64">
           <ResponsiveContainer>
             <BarChart data={[
-              { name: "Birth", Approved: birth.filter((a) => a.status === "Approved").length, Rejected: birth.filter((a) => a.status === "Rejected").length },
-              { name: "National ID", Approved: nationalId.filter((a) => a.status === "Approved").length, Rejected: nationalId.filter((a) => a.status === "Rejected").length },
-              { name: "Recovery", Approved: recovery.filter((a) => a.status === "Approved").length, Rejected: recovery.filter((a) => a.status === "Rejected").length },
+              { name: "Birth", Approved: birthF.filter((a) => a.status === "Approved").length, Rejected: birthF.filter((a) => a.status === "Rejected").length },
+              { name: "National ID", Approved: nidF.filter((a) => a.status === "Approved").length, Rejected: nidF.filter((a) => a.status === "Rejected").length },
+              { name: "Recovery", Approved: recF.filter((a) => a.status === "Approved").length, Rejected: recF.filter((a) => a.status === "Rejected").length },
             ]}>
               <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
               <XAxis dataKey="name" /><YAxis allowDecimals={false} />
