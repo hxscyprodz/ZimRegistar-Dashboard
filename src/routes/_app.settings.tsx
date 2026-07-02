@@ -354,7 +354,7 @@ function MyProfile() {
 }
 
 function StaffDialog({
-  open, title, draft, setDraft, onOpenChange, onSubmit, submitLabel, onDelete, mode = "edit",
+  open, title, draft, setDraft, onOpenChange, onSubmit, submitLabel, onDelete, mode = "edit", stations, lockStation,
 }: {
   open: boolean;
   title: string;
@@ -365,6 +365,8 @@ function StaffDialog({
   submitLabel: string;
   onDelete?: () => void;
   mode?: "add" | "edit";
+  stations: { id: string; name: string }[];
+  lockStation?: boolean;
 }) {
   const set = (patch: Partial<Draft>) => setDraft({ ...draft, ...patch });
   return (
@@ -411,6 +413,20 @@ function StaffDialog({
                 <SelectItem value="Registrar Officer">Registrar Officer</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Station</Label>
+            <Select value={draft.stationId} onValueChange={(v) => set({ stationId: v })} disabled={lockStation}>
+              <SelectTrigger><SelectValue placeholder="Assign a station" /></SelectTrigger>
+              <SelectContent>
+                {stations.map((st) => (
+                  <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {lockStation ? (
+              <p className="text-[11px] text-muted-foreground">Administrators can only manage staff at their own station.</p>
+            ) : null}
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Password</Label>
