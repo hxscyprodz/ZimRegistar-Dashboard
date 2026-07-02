@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, FileText, IdCard, FileSearch, CheckCircle2, Printer, BarChart3, Settings, Shield, ChevronLeft, Building2, Users, Crown,
+  LayoutDashboard, FileText, IdCard, FileSearch, CheckCircle2, Printer, BarChart3, Settings, Shield, ChevronLeft, Building2, Users, Crown, FileStack,
 } from "lucide-react";
 import { useUI, useAuth } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -20,11 +20,9 @@ const superAdminItems = [
   { to: "/super-admin", label: "System Overview", icon: Crown },
   { to: "/super-admin/stations", label: "Stations", icon: Building2 },
   { to: "/super-admin/staff", label: "All Staff", icon: Users },
-  { to: "/super-admin/applications", label: "All Applications", icon: FileStackIcon },
+  { to: "/super-admin/applications", label: "All Applications", icon: FileStack },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
-
-import { FileStack as FileStackIcon } from "lucide-react";
 
 export function Sidebar() {
   const { sidebarCollapsed, toggleSidebar } = useUI();
