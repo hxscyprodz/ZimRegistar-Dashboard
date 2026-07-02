@@ -77,13 +77,13 @@ function Page() {
             </Card>
           </div>
 
-          <Card title="Uploaded Documents">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <DocumentCard label="Hospital Birth Record" src={app.documents.hospitalRecord} />
-              <DocumentCard label="Mother's National ID" src={app.documents.motherId} />
-              <DocumentCard label="Father's National ID" src={app.documents.fatherId} />
-            </div>
-          </Card>
+          {app.documents?.birthCertificate ? (
+            <Card title="Uploaded Birth Certificate">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <DocumentCard label="Birth Certificate" src={app.documents.birthCertificate} />
+              </div>
+            </Card>
+          ) : null}
 
           {app.status === "Rejected" && app.rejectionReason ? (
             <Card title="Rejection Details">
