@@ -1,12 +1,21 @@
 export type AppStatus = "Pending" | "Approved" | "Rejected";
 export type PrintStatus = "Not Printed" | "Printed";
 
+export interface Station {
+  id: string;
+  name: string;
+  province: string;
+  district: string;
+  town: string;
+}
+
 export interface BaseApplication {
   id: string;
   applicationNumber: string;
   applicantName: string;
   dateSubmitted: string;
   status: AppStatus;
+  stationId: string;
   rejectionReason?: string;
   rejectedBy?: string;
   rejectedAt?: string;
@@ -30,9 +39,7 @@ export interface BirthCertificateApp extends BaseApplication {
   mother: { firstName: string; lastName: string; nationalId: string };
   father: { firstName: string; lastName: string; nationalId: string };
   documents: {
-    hospitalRecord: string;
-    motherId: string;
-    fatherId: string;
+    birthCertificate?: string;
   };
 }
 
@@ -49,8 +56,7 @@ export interface NationalIdApp extends BaseApplication {
   };
   documents: {
     birthCertificate: string;
-    proofOfResidence: string;
-    photo: string;
+    photo?: string;
   };
 }
 
@@ -70,10 +76,8 @@ export interface RecoveryApp extends BaseApplication {
     address: string;
     contactNumber: string;
   };
-  documents: {
-    policeReport: string;
-    affidavit: string;
-    photoId?: string;
+  documents?: {
+    birthCertificate?: string;
   };
 }
 
