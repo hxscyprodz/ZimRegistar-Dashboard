@@ -4,7 +4,6 @@ import { Eye, EyeOff, Shield, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/lib/store";
 import { toast } from "sonner";
 
@@ -19,7 +18,6 @@ function LoginPage() {
   const [emp, setEmp] = useState("");
   const [pwd, setPwd] = useState("");
   const [show, setShow] = useState(false);
-  const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ emp?: string; pwd?: string }>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -99,10 +97,7 @@ function LoginPage() {
               </div>
               {errors.pwd ? <p className="text-xs text-destructive">{errors.pwd}</p> : null}
             </div>
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm">
-                <Checkbox checked={remember} onCheckedChange={(v) => setRemember(!!v)} /> Remember me
-              </label>
+            <div className="flex items-center justify-end">
               <button type="button" className="text-sm font-medium text-gov hover:underline dark:text-primary" onClick={() => toast.info("Please contact the IT helpdesk.")}>
                 Forgot password?
               </button>
