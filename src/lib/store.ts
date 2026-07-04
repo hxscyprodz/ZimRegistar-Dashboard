@@ -117,11 +117,9 @@ interface AuthState {
   logout: () => void;
 }
 
-export const useAuth = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      login: async (employeeNumber, password) => {
+export const useAuth = create<AuthState>()((set) => ({
+  user: null,
+  login: async (employeeNumber, password) => {
         await new Promise((r) => setTimeout(r, 600));
         const staff = useStaff.getState().staff;
         const match = staff.find(
@@ -137,12 +135,9 @@ export const useAuth = create<AuthState>()(
           },
         });
         return true;
-      },
-      logout: () => set({ user: null }),
-    }),
-    { name: "rg-auth", version: 3 },
-  ),
-);
+  },
+  logout: () => set({ user: null }),
+}));
 
 interface StaffState {
   staff: StaffMember[];
