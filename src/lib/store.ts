@@ -113,6 +113,7 @@ export const MOCK_STAFF: StaffMember[] = [
 
 interface AuthState {
   user: AuthUser | null;
+  restoreSession: () => void;
   login: (employeeNumber: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
@@ -142,6 +143,7 @@ function saveSessionUser(user: AuthUser | null) {
 
 export const useAuth = create<AuthState>()((set) => ({
   user: readSessionUser(),
+  restoreSession: () => set({ user: readSessionUser() }),
   login: async (employeeNumber, password) => {
     await new Promise((r) => setTimeout(r, 600));
     const staff = useStaff.getState().staff;
