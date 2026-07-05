@@ -117,7 +117,6 @@ interface AuthState {
   logout: () => void;
 }
 
-export const useAuth = create<AuthState>()((set) => ({
 export const useAuth = create<AuthState>()(
   persist(
     (set) => ({
