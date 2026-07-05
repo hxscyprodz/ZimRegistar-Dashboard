@@ -143,8 +143,8 @@ function saveSessionUser(user: AuthUser | null) {
 }
 
 export const useAuth = create<AuthState>()((set) => ({
-  user: readSessionUser(),
-  ready: typeof window !== "undefined",
+  user: null,
+  ready: false,
   restoreSession: () => set({ user: readSessionUser(), ready: true }),
   login: async (employeeNumber, password) => {
     await new Promise((r) => setTimeout(r, 600));
@@ -160,7 +160,7 @@ export const useAuth = create<AuthState>()((set) => ({
       stationId: match.stationId,
     };
     saveSessionUser(user);
-    set({ user });
+    set({ user, ready: true });
     return true;
   },
   logout: () => {
