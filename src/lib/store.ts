@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { BirthCertificateApp, NationalIdApp, RecoveryApp, AppStatus, PrintStatus, Station } from "./types";
 import { seedBirth, seedNationalId, seedRecovery } from "./mockData";
 
@@ -118,8 +118,11 @@ interface AuthState {
 }
 
 export const useAuth = create<AuthState>()((set) => ({
-  user: null,
-  login: async (employeeNumber, password) => {
+export const useAuth = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      login: async (employeeNumber, password) => {
         await new Promise((r) => setTimeout(r, 600));
         const staff = useStaff.getState().staff;
         const match = staff.find(
@@ -135,9 +138,16 @@ export const useAuth = create<AuthState>()((set) => ({
           },
         });
         return true;
-  },
-  logout: () => set({ user: null }),
-}));
+      },
+      logout: () => set({ user: null }),
+    }),
+    {
+      name: "rg-auth-session",
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({ user: state.user }),
+    },
+  ),
+);
 
 interface StaffState {
   staff: StaffMember[];
