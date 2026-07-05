@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import type { BirthCertificateApp, NationalIdApp, RecoveryApp, AppStatus, PrintStatus, Station } from "./types";
 import { seedBirth, seedNationalId, seedRecovery } from "./mockData";
 
@@ -117,36 +117,53 @@ interface AuthState {
   logout: () => void;
 }
 
-export const useAuth = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      login: async (employeeNumber, password) => {
-        await new Promise((r) => setTimeout(r, 600));
-        const staff = useStaff.getState().staff;
-        const match = staff.find(
-          (s) => s.employeeNumber.toLowerCase() === employeeNumber.toLowerCase() && s.password === password,
-        );
-        if (!match || !match.active) return false;
-        set({
-          user: {
-            employeeNumber: match.employeeNumber,
-            name: `${match.firstName} ${match.lastName}`,
-            role: match.role,
-            stationId: match.stationId,
-          },
-        });
-        return true;
-      },
-      logout: () => set({ user: null }),
-    }),
-    {
-      name: "rg-auth-session",
-      storage: createJSONStorage(() => sessionStorage),
-      partialize: (state) => ({ user: state.user }),
-    },
-  ),
-);
+const AUTH_SESSION_KEY = "rg-auth-session";
+
+function readSessionUser(): AuthUser | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(AUTH_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as AuthUser | { state?: { user?: AuthUser | null } };
+    return "state" in parsed ? parsed.state?.user ?? null : parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveSessionUser(user: AuthUser | null) {
+  if (typeof window === "undefined") return;
+  if (user) {
+    window.sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(user));
+  } else {
+    window.sessionStorage.removeItem(AUTH_SESSION_KEY);
+  }
+}
+
+export const useAuth = create<AuthState>()((set) => ({
+  user: readSessionUser(),
+  login: async (employeeNumber, password) => {
+    await new Promise((r) => setTimeout(r, 600));
+    const staff = useStaff.getState().staff;
+    const match = staff.find(
+      (s) => s.employeeNumber.toLowerCase() === employeeNumber.toLowerCase() && s.password === password,
+    );
+    if (!match || !match.active) return false;
+    const user = {
+      employeeNumber: match.employeeNumber,
+      name: `${match.firstName} ${match.lastName}`,
+      role: match.role,
+      stationId: match.stationId,
+    };
+    saveSessionUser(user);
+    set({ user });
+    return true;
+  },
+  logout: () => {
+    saveSessionUser(null);
+    set({ user: null });
+  },
+}));
 
 interface StaffState {
   staff: StaffMember[];
