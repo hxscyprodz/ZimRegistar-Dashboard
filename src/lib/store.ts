@@ -124,8 +124,8 @@ function readSessionUser(): AuthUser | null {
   try {
     const raw = window.sessionStorage.getItem(AUTH_SESSION_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as AuthUser | { state?: { user?: AuthUser | null } };
-    return "state" in parsed ? parsed.state?.user ?? null : parsed;
+    const parsed = JSON.parse(raw) as AuthUser & { state?: { user?: AuthUser | null } };
+    return parsed.state?.user ?? parsed;
   } catch {
     return null;
   }
