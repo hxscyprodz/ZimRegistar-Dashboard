@@ -69,7 +69,7 @@ function LoginPage() {
         <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-card p-7 shadow-2xl">
           <div className="mb-6 flex items-center gap-3">
             <div className="grid h-11 w-11 place-items-center rounded-xl bg-gov text-gov-foreground">
-              <Shield className="h-5 w-5 text-gold" />
+              <img src="/logo.svg" alt="Zimbabwe Coat of Arms" className="h-5 w-5 object-contain" />
             </div>
             <div>
               <h2 className="font-display text-xl font-bold">Staff Sign In</h2>
