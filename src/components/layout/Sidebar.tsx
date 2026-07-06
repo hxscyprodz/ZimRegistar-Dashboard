@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, FileText, IdCard, FileSearch, CheckCircle2, Printer, BarChart3, Settings, Shield, ChevronLeft, Crown,
+  LayoutDashboard, FileText, IdCard, FileSearch, CheckCircle2, Printer, BarChart3, Settings, ChevronLeft, Crown,
 } from "lucide-react";
 import { useUI, useAuth } from "@/lib/store";
 import { cn } from "@/lib/utils";
