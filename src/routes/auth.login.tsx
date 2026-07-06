@@ -26,7 +26,7 @@ function LoginPage() {
     e.preventDefault();
     setFormError(null);
     const errs: typeof errors = {};
-    if (!emp.trim()) errs.emp = "Employee number is required.";
+    if (!emp.trim()) errs.emp = "Employee number or phone number is required.";
     if (pwd.length < 4) errs.pwd = "Password must be at least 4 characters.";
     setErrors(errs);
     if (Object.keys(errs).length) return;
@@ -34,7 +34,7 @@ function LoginPage() {
     const ok = await login(emp.trim(), pwd);
     setLoading(false);
     if (!ok) {
-      const msg = "Invalid employee number or password. Please try again.";
+      const msg = "Invalid credentials. Please check your employee number or phone number and password.";
       setFormError(msg);
       toast.error(msg);
       return;
