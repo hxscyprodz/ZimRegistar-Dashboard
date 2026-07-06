@@ -149,8 +149,14 @@ export const useAuth = create<AuthState>()((set) => ({
   login: async (employeeNumber, password) => {
     await new Promise((r) => setTimeout(r, 600));
     const staff = useStaff.getState().staff;
+    const identifier = employeeNumber.trim().toLowerCase();
+    const normalizePhone = (p: string) => p.replace(/[\s\-()]/g, "");
+    const idPhone = normalizePhone(identifier);
     const match = staff.find(
-      (s) => s.employeeNumber.toLowerCase() === employeeNumber.toLowerCase() && s.password === password,
+      (s) =>
+        s.password === password &&
+        (s.employeeNumber.toLowerCase() === identifier ||
+          (idPhone.length > 0 && normalizePhone(s.phone.toLowerCase()) === idPhone)),
     );
     if (!match || !match.active) return false;
     const user = {
