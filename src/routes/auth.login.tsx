@@ -83,9 +83,9 @@ function LoginPage() {
               </div>
             ) : null}
             <div className="space-y-1.5">
-              <Label htmlFor="emp">Employee Number</Label>
-              <Input id="emp" placeholder="e.g. RG-04821" value={emp} onChange={(e) => setEmp(e.target.value)} autoComplete="username" />
-              {errors.emp ? <p className="text-xs text-destructive">{errors.emp}</p> : null}
+              <Label htmlFor="emp">Employee Number or Phone Number</Label>
+              <Input id="emp" placeholder="e.g. RG-04821 or +263 772 100 003" value={emp} onChange={(e) => setEmp(e.target.value)} autoComplete="username" />
+              {errors.emp ? <p className="text-xs text-destructive">{errors.emp}</p> : <p className="text-xs text-muted-foreground">You can sign in with either your employee number or registered phone number.</p>}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="pwd">Password</Label>
