@@ -68,9 +68,7 @@ function LoginPage() {
         </div>
         <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-card p-7 shadow-2xl">
           <div className="mb-6 flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-xl bg-gov text-gov-foreground">
-              <img src="/logo.svg" alt="Zimbabwe Coat of Arms" className="h-5 w-5 object-contain" />
-            </div>
+            <img src="/logo.svg" alt="Zimbabwe Coat of Arms" className="h-11 w-11 shrink-0 rounded-xl object-contain" />
             <div>
               <h2 className="font-display text-xl font-bold">Staff Sign In</h2>
               <p className="text-xs text-muted-foreground">Use your Employee credentials</p>
