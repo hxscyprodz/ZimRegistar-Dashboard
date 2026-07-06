@@ -48,7 +48,7 @@ function LoginPage() {
       <div className="mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 items-center gap-8 px-6 py-12 lg:grid-cols-2">
         <div className="hidden text-gov-foreground lg:block">
           <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 ring-1 ring-white/20">
-            <Shield className="h-4 w-4 text-gold" />
+            <img src="/logo.svg" alt="Zimbabwe Coat of Arms" className="h-4 w-4 object-contain" />
             <span className="text-xs font-semibold uppercase tracking-wider">Republic of Zimbabwe</span>
           </div>
           <h1 className="font-display text-4xl font-bold leading-tight">
