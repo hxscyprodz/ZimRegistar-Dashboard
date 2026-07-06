@@ -82,10 +82,10 @@ function LoginPage() {
             ) : null}
             <div className="space-y-1.5">
               <Label htmlFor="emp">Employee Number or Phone Number</Label>
-              <Input id="emp" placeholder="e.g. RG-04821 or +263 772 100 003" value={emp} onChange={(e) => setEmp(e.target.value)} autoComplete="username" />
+              <Input id="emp" placeholder="RG-04821 or +263 772 100 003" value={emp} onChange={(e) => setEmp(e.target.value)} autoComplete="username" />
               {errors.emp ? <p className="text-xs text-destructive">{errors.emp}</p> : <p className="text-xs text-muted-foreground">You can sign in with either your employee number or registered phone number.</p>}
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 mb-10">
               <Label htmlFor="pwd">Password</Label>
               <div className="relative">
                 <Input id="pwd" type={show ? "text" : "password"} value={pwd} onChange={(e) => setPwd(e.target.value)} autoComplete="current-password" />
@@ -94,11 +94,6 @@ function LoginPage() {
                 </button>
               </div>
               {errors.pwd ? <p className="text-xs text-destructive">{errors.pwd}</p> : null}
-            </div>
-            <div className="flex items-center justify-end">
-              <button type="button" className="text-sm font-medium text-gov hover:underline dark:text-primary" onClick={() => toast.info("Please contact the IT helpdesk.")}>
-                Forgot password?
-              </button>
             </div>
             <Button type="submit" className="w-full bg-gov text-gov-foreground hover:bg-gov/90" disabled={loading}>
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
