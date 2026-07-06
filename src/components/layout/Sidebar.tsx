@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, FileText, IdCard, FileSearch, CheckCircle2, Printer, BarChart3, Settings, Shield, ChevronLeft, Crown,
+  LayoutDashboard, FileText, IdCard, FileSearch, CheckCircle2, Printer, BarChart3, Settings, ChevronLeft, Crown,
 } from "lucide-react";
 import { useUI, useAuth } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -37,9 +37,7 @@ export function Sidebar() {
       )}
     >
       <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gold text-gold-foreground">
-          <Shield className="h-5 w-5" />
-        </div>
+        <img src="/logo.svg" alt="Zimbabwe Coat of Arms" className="h-9 w-9 shrink-0 rounded-lg object-contain" />
         {!sidebarCollapsed && (
           <div className="min-w-0">
             <p className="truncate font-display text-sm font-bold leading-tight">Registrar General</p>
