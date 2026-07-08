@@ -11,15 +11,10 @@
  *
  * Endpoint shapes are documented per-function and follow REST conventions.
  */
-import type {
-  BirthCertificateApp,
-  NationalIdApp,
-  RecoveryApp,
-} from "./types";
-import { useApps, useStaff, type StaffMember } from "./store";
+import type { BirthCertificateApp, NationalIdApp, RecoveryApp } from "./types";
+import { useApps, useStaff, type StaffMember, Role } from "./store";
 
-export const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api";
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -28,8 +23,7 @@ export async function request<T>(
   path: string,
   options: { method?: HttpMethod; body?: unknown; signal?: AbortSignal } = {},
 ): Promise<T> {
-  const token =
-    typeof window !== "undefined" ? window.localStorage.getItem("rg-token") : null;
+  const token = typeof window !== "undefined" ? window.localStorage.getItem("rg-token") : null;
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: options.method ?? "GET",
     headers: {
@@ -51,20 +45,26 @@ export async function request<T>(
 /* ------------------------------------------------------------------ */
 
 /** POST /auth/login  →  { token, user } */
-export async function loginApi(employeeNumber: string, password: string) {
-  // return request<{ token: string; user: { employeeNumber: string; name: string; role: string } }>(
-  //   "/auth/login",
-  //   { method: "POST", body: { employeeNumber, password } },
-  // );
-  const staff = useStaff.getState().staff;
-  const match = staff.find(
-    (s) => s.employeeNumber.toLowerCase() === employeeNumber.toLowerCase() && s.password === password,
-  );
-  if (!match || !match.active) throw new Error("Invalid credentials");
-  return {
-    token: `mock-token-${match.id}`,
-    user: { employeeNumber: match.employeeNumber, name: `${match.firstName} ${match.lastName}`, role: match.role },
+export function loginApi(phone: string, password: string) {
+  // The user object from the API should match the AuthUser interface in store.ts
+  type LoginResponse = {
+    token: string;
+    user: {
+      employeeNumber: string;
+      name: string;
+      role: "Super Administrator" | "Administrator" | "Supervisor" | "Registrar Officer";
+      stationId: string;
+    };
   };
+  return request<LoginResponse>("/auth/login", { method: "POST", body: { phone, password } });
+}
+
+/** GET /auth/profile  →  user */
+export function profileApi() {
+  return request<{
+    success: true;
+    user: { employeeNumber: string; name: string; role: Role; stationId: string };
+  }>("/auth/profile");
 }
 
 /** POST /auth/logout */
@@ -92,7 +92,10 @@ export async function createStaffApi(payload: Omit<StaffMember, "id">): Promise<
 }
 
 /** PUT /staff/:id */
-export async function updateStaffApi(id: string, patch: Partial<StaffMember>): Promise<StaffMember> {
+export async function updateStaffApi(
+  id: string,
+  patch: Partial<StaffMember>,
+): Promise<StaffMember> {
   // return request<StaffMember>(`/staff/${id}`, { method: "PUT", body: patch });
   useStaff.getState().updateStaff(id, patch);
   return useStaff.getState().staff.find((s) => s.id === id)!;

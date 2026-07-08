@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/store";
+import { loginApi } from "@/lib/api";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth/login")({
@@ -14,9 +15,9 @@ export const Route = createFileRoute("/auth/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
-  const login = useAuth((s) => s.login);
-  const [emp, setEmp] = useState("");
-  const [pwd, setPwd] = useState("");
+  const setAuthUser = useAuth((s) => s.login);
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ emp?: string; pwd?: string }>({});
@@ -26,21 +27,25 @@ function LoginPage() {
     e.preventDefault();
     setFormError(null);
     const errs: typeof errors = {};
-    if (!emp.trim()) errs.emp = "Employee number or phone number is required.";
-    if (pwd.length < 4) errs.pwd = "Password must be at least 4 characters.";
+    if (!phone.trim()) errs.emp = "Phone number is required.";
+    if (password.length < 4) errs.pwd = "Password must be at least 4 characters.";
     setErrors(errs);
     if (Object.keys(errs).length) return;
     setLoading(true);
-    const ok = await login(emp.trim(), pwd);
-    setLoading(false);
-    if (!ok) {
-      const msg = "Invalid credentials. Please check your employee number or phone number and password.";
+    try {
+      const { user, token } = await loginApi(phone.trim(), password);
+      window.localStorage.setItem("rg-token", token);
+      setAuthUser(user);
+      toast.success("Welcome back");
+      navigate({ to: "/dashboard" });
+    } catch (error) {
+      const msg =
+        "Invalid credentials. Please check your employee number or phone number and password.";
       setFormError(msg);
       toast.error(msg);
-      return;
+    } finally {
+      setLoading(false);
     }
-    toast.success("Welcome back");
-    navigate({ to: "/dashboard" });
   };
 
   return (
@@ -49,13 +54,16 @@ function LoginPage() {
         <div className="hidden text-gov-foreground lg:block">
           <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 ring-1 ring-white/20">
             <img src="/logo.svg" alt="Zimbabwe Coat of Arms" className="h-4 w-4 object-contain" />
-            <span className="text-xs font-semibold uppercase tracking-wider">Republic of Zimbabwe</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">
+              Republic of Zimbabwe
+            </span>
           </div>
           <h1 className="font-display text-4xl font-bold leading-tight">
             Registrar General's Office
           </h1>
           <p className="mt-3 max-w-md text-white/80">
-            Secure access for staff to manage Birth Certificates, National IDs and Document Recovery applications.
+            Secure access for staff to manage Birth Certificates, National IDs and Document Recovery
+            applications.
           </p>
           <div className="mt-10 grid grid-cols-3 gap-4 text-sm">
             {["Issue", "Approve", "Print"].map((t, i) => (
@@ -68,7 +76,11 @@ function LoginPage() {
         </div>
         <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-card p-7 shadow-2xl">
           <div className="mb-6 flex items-center gap-3">
-            <img src="/logo.svg" alt="Zimbabwe Coat of Arms" className="h-11 w-11 shrink-0 rounded-xl object-contain" />
+            <img
+              src="/logo.svg"
+              alt="Zimbabwe Coat of Arms"
+              className="h-11 w-11 shrink-0 rounded-xl object-contain"
+            />
             <div>
               <h2 className="font-display text-xl font-bold">Staff Sign In</h2>
               <p className="text-xs text-muted-foreground">Use your Employee credentials</p>
@@ -76,36 +88,77 @@ function LoginPage() {
           </div>
           <form onSubmit={submit} className="space-y-4">
             {formError ? (
-              <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <div
+                role="alert"
+                className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              >
                 {formError}
               </div>
             ) : null}
             <div className="space-y-1.5">
               <Label htmlFor="emp">Employee Number or Phone Number</Label>
-              <Input id="emp" placeholder="RG-04821 or +263 772 100 003" value={emp} onChange={(e) => setEmp(e.target.value)} autoComplete="username" />
-              {errors.emp ? <p className="text-xs text-destructive">{errors.emp}</p> : <p className="text-xs text-muted-foreground">You can sign in with either your employee number or registered phone number.</p>}
+              <Input
+                id="emp"
+                placeholder="RG-04821 or +263 772 100 003"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                autoComplete="username"
+              />
+              {errors.emp ? (
+                <p className="text-xs text-destructive">{errors.emp}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  You can sign in with either your employee number or registered phone number.
+                </p>
+              )}
             </div>
             <div className="space-y-1.5 mb-10">
               <Label htmlFor="pwd">Password</Label>
               <div className="relative">
-                <Input id="pwd" type={show ? "text" : "password"} value={pwd} onChange={(e) => setPwd(e.target.value)} autoComplete="current-password" />
-                <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground">
+                <Input
+                  id="pwd"
+                  type={show ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShow((s) => !s)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+                >
                   {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {errors.pwd ? <p className="text-xs text-destructive">{errors.pwd}</p> : null}
             </div>
-            <Button type="submit" className="w-full bg-gov text-gov-foreground hover:bg-gov/90" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full bg-gov text-gov-foreground hover:bg-gov/90"
+              disabled={loading}
+            >
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Sign in securely
             </Button>
             <div className="rounded-lg border border-dashed border-border bg-muted/40 p-3 text-xs">
               <p className="mb-1 font-semibold text-foreground">Demo credentials</p>
               <ul className="space-y-0.5 text-muted-foreground">
-                <li><span className="font-mono">RG-00001</span> / <span className="font-mono">root1234</span> · Super Administrator</li>
-                <li><span className="font-mono">RG-01902</span> / <span className="font-mono">admin1234</span> · Administrator</li>
-                <li><span className="font-mono">RG-03317</span> / <span className="font-mono">super1234</span> · Supervisor</li>
-                <li><span className="font-mono">RG-04821</span> / <span className="font-mono">officer1234</span> · Registrar Officer</li>
+                <li>
+                  <span className="font-mono">RG-00001</span> /{" "}
+                  <span className="font-mono">root1234</span> · Super Administrator
+                </li>
+                <li>
+                  <span className="font-mono">RG-01902</span> /{" "}
+                  <span className="font-mono">admin1234</span> · Administrator
+                </li>
+                <li>
+                  <span className="font-mono">RG-03317</span> /{" "}
+                  <span className="font-mono">super1234</span> · Supervisor
+                </li>
+                <li>
+                  <span className="font-mono">RG-04821</span> /{" "}
+                  <span className="font-mono">officer1234</span> · Registrar Officer
+                </li>
               </ul>
             </div>
             <p className="text-center text-xs text-muted-foreground">
