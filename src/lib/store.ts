@@ -1,6 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { BirthCertificateApp, NationalIdApp, RecoveryApp, AppStatus, PrintStatus, Station } from "./types";
+import { profileApi } from "./api";
+import type {
+  BirthCertificateApp,
+  NationalIdApp,
+  RecoveryApp,
+  AppStatus,
+  PrintStatus,
+  Station,
+} from "./types";
 import { seedBirth, seedNationalId, seedRecovery } from "./mockData";
 
 export type Role = "Super Administrator" | "Administrator" | "Supervisor" | "Registrar Officer";
@@ -38,9 +46,27 @@ export function nextEmployeeNumber(existing: StaffMember[]): string {
 }
 
 export const MOCK_STATIONS: Station[] = [
-  { id: "ST-HRE", name: "Harare Central Registry", province: "Harare", district: "Harare Metro", town: "Harare" },
-  { id: "ST-BYO", name: "Bulawayo Central Registry", province: "Bulawayo", district: "Bulawayo Metro", town: "Bulawayo" },
-  { id: "ST-MUT", name: "Mutare District Registry", province: "Manicaland", district: "Mutare", town: "Mutare" },
+  {
+    id: "ST-HRE",
+    name: "Harare Central Registry",
+    province: "Harare",
+    district: "Harare Metro",
+    town: "Harare",
+  },
+  {
+    id: "ST-BYO",
+    name: "Bulawayo Central Registry",
+    province: "Bulawayo",
+    district: "Bulawayo Metro",
+    town: "Bulawayo",
+  },
+  {
+    id: "ST-MUT",
+    name: "Mutare District Registry",
+    province: "Manicaland",
+    district: "Mutare",
+    town: "Mutare",
+  },
 ];
 
 export const MOCK_STAFF: StaffMember[] = [
@@ -114,63 +140,38 @@ export const MOCK_STAFF: StaffMember[] = [
 interface AuthState {
   user: AuthUser | null;
   ready: boolean;
-  restoreSession: () => void;
-  login: (employeeNumber: string, password: string) => Promise<boolean>;
+  restoreSession: () => Promise<void>;
+  login: (user: AuthUser) => void;
   logout: () => void;
-}
-
-const AUTH_SESSION_KEY = "rg-auth-session";
-
-function readSessionUser(): AuthUser | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.sessionStorage.getItem(AUTH_SESSION_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as AuthUser & { state?: { user?: AuthUser | null } };
-    return parsed.state?.user ?? parsed;
-  } catch {
-    return null;
-  }
-}
-
-function saveSessionUser(user: AuthUser | null) {
-  if (typeof window === "undefined") return;
-  if (user) {
-    window.sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(user));
-  } else {
-    window.sessionStorage.removeItem(AUTH_SESSION_KEY);
-  }
 }
 
 export const useAuth = create<AuthState>()((set) => ({
   user: null,
   ready: false,
-  restoreSession: () => set({ user: readSessionUser(), ready: true }),
-  login: async (employeeNumber, password) => {
-    await new Promise((r) => setTimeout(r, 600));
-    const staff = useStaff.getState().staff;
-    const identifier = employeeNumber.trim().toLowerCase();
-    const normalizePhone = (p: string) => p.replace(/[\s\-()]/g, "");
-    const idPhone = normalizePhone(identifier);
-    const match = staff.find(
-      (s) =>
-        s.password === password &&
-        (s.employeeNumber.toLowerCase() === identifier ||
-          (idPhone.length > 0 && normalizePhone(s.phone.toLowerCase()) === idPhone)),
-    );
-    if (!match || !match.active) return false;
-    const user = {
-      employeeNumber: match.employeeNumber,
-      name: `${match.firstName} ${match.lastName}`,
-      role: match.role,
-      stationId: match.stationId,
-    };
-    saveSessionUser(user);
+  restoreSession: async () => {
+    // No token, no session
+    if (typeof window === "undefined" || !window.localStorage.getItem("rg-token")) {
+      set({ user: null, ready: true });
+      return;
+    }
+    try {
+      // Token found, fetch user profile
+      const { user } = await profileApi();
+      set({ user, ready: true });
+    } catch (error) {
+      // Token is invalid or API is down
+      console.error("Failed to restore session:", error);
+      window.localStorage.removeItem("rg-token");
+      set({ user: null, ready: true });
+    }
+  },
+  login: (user) => {
     set({ user, ready: true });
-    return true;
   },
   logout: () => {
-    saveSessionUser(null);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("rg-token");
+    }
     set({ user: null, ready: true });
   },
 }));
@@ -297,11 +298,27 @@ interface AppsState {
   nationalId: NationalIdApp[];
   recovery: RecoveryApp[];
   approve: (kind: "birth" | "nationalId" | "recovery", id: string, by: string) => void;
-  reject: (kind: "birth" | "nationalId" | "recovery", id: string, reason: string, by: string) => void;
+  reject: (
+    kind: "birth" | "nationalId" | "recovery",
+    id: string,
+    reason: string,
+    by: string,
+  ) => void;
   markPrinted: (kind: "birth" | "nationalId" | "recovery", id: string) => void;
 }
 
-const updateStatus = <T extends { id: string; status: AppStatus; approvedAt?: string; approvedBy?: string; rejectionReason?: string; rejectedAt?: string; rejectedBy?: string; printStatus?: PrintStatus }>(
+const updateStatus = <
+  T extends {
+    id: string;
+    status: AppStatus;
+    approvedAt?: string;
+    approvedBy?: string;
+    rejectionReason?: string;
+    rejectedAt?: string;
+    rejectedBy?: string;
+    printStatus?: PrintStatus;
+  },
+>(
   arr: T[],
   id: string,
   patch: Partial<T>,
@@ -314,30 +331,39 @@ export const useApps = create<AppsState>()(
       nationalId: seedNationalId,
       recovery: seedRecovery,
       approve: (kind, id, by) =>
-        set((s) => ({
-          [kind]: updateStatus(s[kind] as never, id, {
-            status: "Approved",
-            approvedAt: new Date().toISOString(),
-            approvedBy: by,
-            printStatus: "Not Printed",
-          } as never),
-        }) as never),
+        set(
+          (s) =>
+            ({
+              [kind]: updateStatus(s[kind] as never, id, {
+                status: "Approved",
+                approvedAt: new Date().toISOString(),
+                approvedBy: by,
+                printStatus: "Not Printed",
+              } as never),
+            }) as never,
+        ),
       reject: (kind, id, reason, by) =>
-        set((s) => ({
-          [kind]: updateStatus(s[kind] as never, id, {
-            status: "Rejected",
-            rejectionReason: reason,
-            rejectedAt: new Date().toISOString(),
-            rejectedBy: by,
-          } as never),
-        }) as never),
+        set(
+          (s) =>
+            ({
+              [kind]: updateStatus(s[kind] as never, id, {
+                status: "Rejected",
+                rejectionReason: reason,
+                rejectedAt: new Date().toISOString(),
+                rejectedBy: by,
+              } as never),
+            }) as never,
+        ),
       markPrinted: (kind, id) =>
-        set((s) => ({
-          [kind]: updateStatus(s[kind] as never, id, {
-            printStatus: "Printed",
-            printedAt: new Date().toISOString(),
-          } as never),
-        }) as never),
+        set(
+          (s) =>
+            ({
+              [kind]: updateStatus(s[kind] as never, id, {
+                printStatus: "Printed",
+                printedAt: new Date().toISOString(),
+              } as never),
+            }) as never,
+        ),
     }),
     { name: "rg-apps", version: 1 },
   ),
