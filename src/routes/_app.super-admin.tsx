@@ -50,6 +50,10 @@ import {
   listStaffApi,
   createStaffApi,
   updateStaffApi,
+  createStationApi,
+  updateStationApi,
+  deleteStationApi,
+  listStationsApi,
   deleteStaffApi,
   toggleStaffActiveApi,
 } from "@/lib/api";
@@ -66,15 +70,23 @@ function SuperAdminPage() {
   const user = useAuth((s) => s.user);
   if (user && user.role !== "Super Administrator") return <Navigate to="/dashboard" />;
 
-  const stations = useStations((s) => s.stations);
+  const [stations, setStations] = useState<Station[]>([]);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [refetchStaff, setRefetchStaff] = useState(0);
+  const [refetchStations, setRefetchStations] = useState(0);
+
   useEffect(() => {
     listStaffApi().then((res) => {
       setStaff(res.data);
     });
   }, [refetchStaff]);
+  useEffect(() => {
+    listStationsApi().then((res) => {
+      setStations(res.data);
+    });
+  }, [refetchStations]);
   const forceRefetchStaff = () => setRefetchStaff((c) => c + 1);
+  const forceRefetchStations = () => setRefetchStations((c) => c + 1);
 
   const { birth, nationalId, recovery } = useApps();
   const allApps = useMemo(
@@ -166,19 +178,19 @@ function SuperAdminPage() {
                   </thead>
                   <tbody className="divide-y divide-border">
                     {stationStats.map((s) => (
-                      <tr key={s.station.id}>
+                      <tr key={s.station.stationId}>
                         <td className="px-5 py-3">
-                          <div className="font-medium">{s.station.name}</div>
+                          <div className="font-medium">{s.station.stationName}</div>
                           <div className="font-mono text-xs text-muted-foreground">
-                            {s.station.id}
+                            {s.station.stationId}
                           </div>
                         </td>
                         <td className="px-5 py-3 text-xs text-muted-foreground">
                           <div className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" /> {s.station.town}
+                            <MapPin className="h-3 w-3" /> {s.station.location.town}
                           </div>
                           <div>
-                            {s.station.district}, {s.station.province}
+                            {s.station.location.district}, {s.station.location.province}
                           </div>
                         </td>
                         <td className="px-5 py-3 font-semibold">{s.employees}</td>
@@ -204,15 +216,15 @@ function SuperAdminPage() {
           </TabsContent>
 
           <TabsContent value="stations" className="mt-4">
-            <StationsTab />
+            <StationsTab stations={stations} forceRefetch={forceRefetchStations} />
           </TabsContent>
 
           <TabsContent value="staff" className="mt-4">
-            <StaffTab staff={staff} forceRefetch={forceRefetchStaff} />
+            <StaffTab staff={staff} forceRefetch={forceRefetchStaff} stations={stations} />
           </TabsContent>
 
           <TabsContent value="applications" className="mt-4">
-            <ApplicationsTab />
+            <ApplicationsTab stations={stations} />
           </TabsContent>
         </Tabs>
       </div>
@@ -222,63 +234,115 @@ function SuperAdminPage() {
 
 // ─── Stations Tab ─────────────────────────────────────────────────────────
 
-type StationDraft = Omit<Station, "id">;
+type StationDraft = Omit<Station, "id" | "stationId">;
 
-function StationsTab() {
-  const { stations, addStation, updateStation, deleteStation } = useStations();
+function StationsTab({
+  stations,
+  forceRefetch,
+}: {
+  stations: Station[];
+  forceRefetch: () => void;
+}) {
   const [q, setQ] = useState("");
   const [addOpen, setAddOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [draft, setDraft] = useState<StationDraft>({
-    name: "",
-    province: "",
-    district: "",
-    town: "",
+    stationName: "",
+    location: {
+      province: "",
+      district: "",
+      town: "",
+      address: "",
+    },
+    numberOfStaff: 0,
   });
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const filtered = stations.filter(
     (s) =>
       q.trim() === "" ||
-      s.name.toLowerCase().includes(q.toLowerCase()) ||
-      s.province.toLowerCase().includes(q.toLowerCase()) ||
-      s.district.toLowerCase().includes(q.toLowerCase()),
+      s.stationName.toLowerCase().includes(q.toLowerCase()) ||
+      s.location.province.toLowerCase().includes(q.toLowerCase()) ||
+      s.location.district.toLowerCase().includes(q.toLowerCase()),
   );
 
   const openAdd = () => {
-    setDraft({ name: "", province: "", district: "", town: "" });
+    setDraft({
+      stationName: "",
+      location: { province: "", district: "", town: "", address: "" },
+      numberOfStaff: 0,
+    });
     setAddOpen(true);
   };
   const openEdit = (s: Station) => {
     setEditingId(s.id);
-    setDraft({ name: s.name, province: s.province, district: s.district, town: s.town });
+    setDraft({
+      stationName: s.stationName,
+      location: {
+        province: s.location.province,
+        district: s.location.district,
+        town: s.location.town,
+        address: s.location.address,
+      },
+      numberOfStaff: s.numberOfStaff,
+    });
   };
   const validate = (d: StationDraft) => {
-    if (!d.name.trim()) return "Station name is required.";
-    if (!d.province.trim() || !d.district.trim() || !d.town.trim())
-      return "Location fields are required.";
+    if (!d.stationName.trim()) return "Station name is required.";
+    if (!d.location.province.trim() || !d.location.district.trim() || !d.location.town.trim())
+      return "Province, District, and Town are required.";
+    if (!d.location.address.trim()) return "Address is required.";
     return null;
   };
-  const submitAdd = () => {
+  const submitAdd = async () => {
     const err = validate(draft);
     if (err) return toast.error(err);
-    addStation(draft);
-    setAddOpen(false);
-    toast.success("Station added");
+    setIsSubmitting(true);
+    try {
+      const res = await createStationApi(draft);
+      setAddOpen(false);
+      toast.success(res.message || "Station added");
+      forceRefetch();
+    } catch (error) {
+      const err = error as { message?: string };
+      toast.error(err.message ?? "Failed to add station.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  const submitEdit = () => {
+  const submitEdit = async () => {
     if (!editingId) return;
     const err = validate(draft);
     if (err) return toast.error(err);
-    updateStation(editingId, draft);
-    setEditingId(null);
-    toast.success("Station updated");
+    setIsSubmitting(true);
+    try {
+      const res = await updateStationApi(editingId, draft);
+      setEditingId(null);
+      toast.success(res.message || "Station updated");
+      forceRefetch();
+    } catch (error) {
+      const err = error as { message?: string };
+      toast.error(err.message ?? "Failed to update station.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  const doDelete = () => {
+  const doDelete = async () => {
     if (!confirmDelete) return;
-    deleteStation(confirmDelete);
-    setConfirmDelete(null);
-    toast.success("Station deleted");
+    setIsDeleting(true);
+    try {
+      const res = await deleteStationApi(confirmDelete);
+      setConfirmDelete(null);
+      toast.success(res.message || "Station deleted");
+      forceRefetch();
+    } catch (error) {
+      const err = error as { message?: string };
+      toast.error(err.message ?? "Failed to delete station.");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -305,12 +369,12 @@ function StationsTab() {
           </thead>
           <tbody className="divide-y divide-border">
             {filtered.map((s) => (
-              <tr key={s.id}>
-                <td className="px-5 py-3 font-mono text-xs">{s.id}</td>
-                <td className="px-5 py-3 font-medium">{s.name}</td>
-                <td className="px-5 py-3">{s.province}</td>
-                <td className="px-5 py-3">{s.district}</td>
-                <td className="px-5 py-3">{s.town}</td>
+              <tr key={s.stationId}>
+                <td className="px-5 py-3 font-mono text-xs">{s.stationId}</td>
+                <td className="px-5 py-3 font-medium">{s.stationName}</td>
+                <td className="px-5 py-3">{s.location.province}</td>
+                <td className="px-5 py-3">{s.location.district}</td>
+                <td className="px-5 py-3">{s.location.town}</td>
                 <td className="px-5 py-3 text-right">
                   <Button size="sm" variant="ghost" onClick={() => openEdit(s)}>
                     <Pencil className="h-4 w-4" />
@@ -341,6 +405,7 @@ function StationsTab() {
         title="Add Station"
         draft={draft}
         setDraft={setDraft}
+        isSubmitting={isSubmitting}
         onSubmit={submitAdd}
         submitLabel="Create station"
       />
@@ -352,6 +417,7 @@ function StationsTab() {
         title="Edit Station"
         draft={draft}
         setDraft={setDraft}
+        isSubmitting={isSubmitting}
         onSubmit={submitEdit}
         submitLabel="Save changes"
       />
@@ -401,22 +467,38 @@ function StationDialog({
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Station name</Label>
             <Input
-              value={draft.name}
-              onChange={(e) => set({ name: e.target.value })}
+              value={draft.stationName}
+              onChange={(e) => set({ stationName: e.target.value })}
               placeholder="e.g. Chinhoyi District Registry"
+            />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Address</Label>
+            <Input
+              value={draft.location.address}
+              onChange={(e) => set({ location: { ...draft.location, address: e.target.value } })}
             />
           </div>
           <div className="space-y-1.5">
             <Label>Province</Label>
-            <Input value={draft.province} onChange={(e) => set({ province: e.target.value })} />
+            <Input
+              value={draft.location.province}
+              onChange={(e) => set({ location: { ...draft.location, province: e.target.value } })}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>District</Label>
-            <Input value={draft.district} onChange={(e) => set({ district: e.target.value })} />
+            <Input
+              value={draft.location.district}
+              onChange={(e) => set({ location: { ...draft.location, district: e.target.value } })}
+            />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Town</Label>
-            <Input value={draft.town} onChange={(e) => set({ town: e.target.value })} />
+            <Input
+              value={draft.location.town}
+              onChange={(e) => set({ location: { ...draft.location, town: e.target.value } })}
+            />
           </div>
         </div>
         <DialogFooter>
@@ -436,8 +518,15 @@ function StationDialog({
 
 type StaffMemberDraft = Omit<StaffMember, "id" | "staffId">;
 
-function StaffTab({ staff, forceRefetch }: { staff: StaffMember[]; forceRefetch: () => void }) {
-  const stations = useStations((s) => s.stations);
+function StaffTab({
+  staff,
+  forceRefetch,
+  stations,
+}: {
+  staff: StaffMember[];
+  forceRefetch: () => void;
+  stations: Station[];
+}) {
   const [q, setQ] = useState("");
   const [stationFilter, setStationFilter] = useState<string>("all");
   const [addOpen, setAddOpen] = useState(false);
@@ -569,7 +658,7 @@ function StaffTab({ staff, forceRefetch }: { staff: StaffMember[]; forceRefetch:
             <SelectItem value="all">All stations</SelectItem>
             {stations.map((s) => (
               <SelectItem key={s.id} value={s.id}>
-                {s.name}
+                {s.stationName}
               </SelectItem>
             ))}
           </SelectContent>
@@ -606,7 +695,7 @@ function StaffTab({ staff, forceRefetch }: { staff: StaffMember[]; forceRefetch:
                 <td className="px-5 py-3 font-mono text-xs">{s.staffId}</td>
                 <td className="px-5 py-3">{s.role}</td>
                 <td className="px-5 py-3 text-xs">
-                  {stations.find((x) => x.id === s.stationId)?.name ?? s.stationId}
+                  {stations.find((x) => x.id === s.stationId)?.stationName ?? s.stationId}
                 </td>
                 <td className="px-5 py-3 text-xs">
                   {s.status ? (
@@ -794,7 +883,7 @@ function StaffDialogSA({
                 {isSuper ? <SelectItem value="ALL">All stations (system-wide)</SelectItem> : null}
                 {stations.map((s) => (
                   <SelectItem key={s.id} value={s.id}>
-                    {s.name}
+                    {s.stationName}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -830,8 +919,7 @@ function StaffDialogSA({
 
 // ─── Applications Tab ─────────────────────────────────────────────────────
 
-function ApplicationsTab() {
-  const stations = useStations((s) => s.stations);
+function ApplicationsTab({ stations }: { stations: Station[] }) {
   const { birth, nationalId, recovery } = useApps();
   const [q, setQ] = useState("");
   const [stationFilter, setStationFilter] = useState<string>("all");
@@ -905,7 +993,7 @@ function ApplicationsTab() {
             <SelectItem value="all">All stations</SelectItem>
             {stations.map((s) => (
               <SelectItem key={s.id} value={s.id}>
-                {s.name}
+                {s.stationName}
               </SelectItem>
             ))}
           </SelectContent>
