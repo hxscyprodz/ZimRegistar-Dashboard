@@ -76,19 +76,21 @@ export async function logoutApi() {
 /* ------------------------------------------------------------------ */
 /* Staff                                                               */
 /* ------------------------------------------------------------------ */
+interface StaffResponse {
+  success: true;
+  data: StaffMember[];
+}
 
 /** GET /staff */
-export async function listStaffApi(): Promise<StaffMember[]> {
-  // return request<StaffMember[]>("/staff");
-  return useStaff.getState().staff;
+export async function listStaffApi(): Promise<StaffResponse> {
+  return request<StaffResponse>("/staff");
 }
 
 /** POST /staff */
-export async function createStaffApi(payload: Omit<StaffMember, "id">): Promise<StaffMember> {
-  // return request<StaffMember>("/staff", { method: "POST", body: payload });
-  useStaff.getState().addStaff(payload);
-  const created = useStaff.getState().staff.at(-1)!;
-  return created;
+export async function createStaffApi(
+  payload: Omit<StaffMember, "id" | "staffId">,
+): Promise<StaffMember> {
+  return request<StaffMember>("/staff", { method: "POST", body: payload });
 }
 
 /** PUT /staff/:id */
@@ -96,22 +98,17 @@ export async function updateStaffApi(
   id: string,
   patch: Partial<StaffMember>,
 ): Promise<StaffMember> {
-  // return request<StaffMember>(`/staff/${id}`, { method: "PUT", body: patch });
-  useStaff.getState().updateStaff(id, patch);
-  return useStaff.getState().staff.find((s) => s.id === id)!;
+  return request<StaffMember>(`/staff/${id}`, { method: "PUT", body: patch });
 }
 
 /** PATCH /staff/:id/active  →  toggles or sets active state */
 export async function toggleStaffActiveApi(id: string): Promise<StaffMember> {
-  // return request<StaffMember>(`/staff/${id}/active`, { method: "PATCH" });
-  useStaff.getState().toggleActive(id);
-  return useStaff.getState().staff.find((s) => s.id === id)!;
+  return request<StaffMember>(`/staff/${id}/active`, { method: "PATCH" });
 }
 
 /** DELETE /staff/:id */
 export async function deleteStaffApi(id: string): Promise<void> {
-  // return request<void>(`/staff/${id}`, { method: "DELETE" });
-  useStaff.getState().deleteStaff(id);
+  return request<void>(`/staff/${id}`, { method: "DELETE" });
 }
 
 /* ------------------------------------------------------------------ */

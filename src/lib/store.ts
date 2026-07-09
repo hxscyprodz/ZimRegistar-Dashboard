@@ -22,22 +22,22 @@ interface AuthUser {
 
 export interface StaffMember {
   id: string;
-  employeeNumber: string;
+  staffId: string;
   firstName: string;
-  lastName: string;
+  surname: string;
   email: string;
   phone: string;
-  nationalId: string;
+  nationalIdNumber: string;
   role: Role;
   stationId: string; // "ALL" for Super Administrator
-  active: boolean;
+  status: boolean;
   password: string;
 }
 
 export function nextEmployeeNumber(existing: StaffMember[]): string {
   const nums = existing
     .map((s) => {
-      const m = s.employeeNumber.match(/RG-(\d+)/i);
+      const m = s.staffId.match(/RG-(\d+)/i);
       return m ? parseInt(m[1], 10) : 0;
     })
     .filter((n) => !Number.isNaN(n));
@@ -72,67 +72,67 @@ export const MOCK_STATIONS: Station[] = [
 export const MOCK_STAFF: StaffMember[] = [
   {
     id: "u-0",
-    employeeNumber: "RG-00001",
+    staffId: "RG-00001",
     firstName: "Chiedza",
-    lastName: "Marufu",
+    surname: "Marufu",
     email: "c.marufu@rg.gov.zw",
     phone: "+263 772 000 001",
-    nationalId: "63-0000001-Z-00",
+    nationalIdNumber: "63-0000001-Z-00",
     role: "Super Administrator",
     stationId: "ALL",
-    active: true,
+    status: true,
     password: "root1234",
   },
   {
     id: "u-1",
-    employeeNumber: "RG-01902",
+    staffId: "RG-01902",
     firstName: "Rumbidzai",
-    lastName: "Sibanda",
+    surname: "Sibanda",
     email: "r.sibanda@rg.gov.zw",
     phone: "+263 772 100 001",
-    nationalId: "63-1234567-A-12",
+    nationalIdNumber: "63-1234567-A-12",
     role: "Administrator",
     stationId: "ST-HRE",
-    active: true,
+    status: true,
     password: "admin1234",
   },
   {
     id: "u-2",
-    employeeNumber: "RG-03317",
+    staffId: "RG-03317",
     firstName: "Nyasha",
-    lastName: "Dube",
+    surname: "Dube",
     email: "n.dube@rg.gov.zw",
     phone: "+263 772 100 002",
-    nationalId: "63-7654321-B-08",
+    nationalIdNumber: "63-7654321-B-08",
     role: "Supervisor",
     stationId: "ST-HRE",
-    active: true,
+    status: true,
     password: "super1234",
   },
   {
     id: "u-3",
-    employeeNumber: "RG-04821",
+    staffId: "RG-04821",
     firstName: "Tafadzwa",
-    lastName: "Moyo",
+    surname: "Moyo",
     email: "t.moyo@rg.gov.zw",
     phone: "+263 772 100 003",
-    nationalId: "63-9988776-C-25",
+    nationalIdNumber: "63-9988776-C-25",
     role: "Registrar Officer",
     stationId: "ST-BYO",
-    active: true,
+    status: true,
     password: "officer1234",
   },
   {
     id: "u-4",
-    employeeNumber: "RG-05512",
+    staffId: "RG-05512",
     firstName: "Tinashe",
-    lastName: "Mhandu",
+    surname: "Mhandu",
     email: "t.mhandu@rg.gov.zw",
     phone: "+263 772 100 004",
-    nationalId: "63-5544332-D-19",
+    nationalIdNumber: "63-5544332-D-19",
     role: "Registrar Officer",
     stationId: "ST-MUT",
-    active: false,
+    status: false,
     password: "officer1234",
   },
 ];
@@ -198,7 +198,7 @@ export const useStaff = create<StaffState>()(
         })),
       toggleActive: (id) =>
         set((state) => ({
-          staff: state.staff.map((m) => (m.id === id ? { ...m, active: !m.active } : m)),
+          staff: state.staff.map((m) => (m.id === id ? { ...m, status: !m.status } : m)),
         })),
       deleteStaff: (id) =>
         set((state) => ({
