@@ -47,25 +47,34 @@ export function nextEmployeeNumber(existing: StaffMember[]): string {
 
 export const MOCK_STATIONS: Station[] = [
   {
-    id: "ST-HRE",
-    name: "Harare Central Registry",
-    province: "Harare",
-    district: "Harare Metro",
-    town: "Harare",
+    stationId: "ST-HRE",
+    stationName: "Harare Central Registry",
+    location: {
+      province: "Harare",
+      district: "Harare Metro",
+      town: "Harare",
+    },
+    numberOfStaff: 3,
   },
   {
-    id: "ST-BYO",
-    name: "Bulawayo Central Registry",
-    province: "Bulawayo",
-    district: "Bulawayo Metro",
-    town: "Bulawayo",
+    stationId: "ST-BYO",
+    stationName: "Bulawayo Central Registry",
+    location: {
+      province: "Bulawayo",
+      district: "Bulawayo Metro",
+      town: "Bulawayo",
+    },
+    numberOfStaff: 5,
   },
   {
-    id: "ST-MUT",
-    name: "Mutare District Registry",
-    province: "Manicaland",
-    district: "Mutare",
-    town: "Mutare",
+    stationId: "ST-MUT",
+    stationName: "Mutare District Registry",
+    location: {
+      province: "Manicaland",
+      district: "Mutare",
+      town: "Mutare",
+    },
+    numberOfStaff: 8,
   },
 ];
 

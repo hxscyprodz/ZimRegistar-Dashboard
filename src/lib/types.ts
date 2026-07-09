@@ -1,12 +1,18 @@
 export type AppStatus = "Pending" | "Approved" | "Rejected";
 export type PrintStatus = "Not Printed" | "Printed";
 
-export interface Station {
-  id: string;
-  name: string;
+export interface Location {
+  address: string;
   province: string;
   district: string;
   town: string;
+}
+export interface Station {
+  id: string;
+  stationId: string;
+  location: Location;
+  stationName: string;
+  numberOfStaff: number;
 }
 
 export interface BaseApplication {

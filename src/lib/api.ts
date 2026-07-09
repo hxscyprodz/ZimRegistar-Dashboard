@@ -1,17 +1,4 @@
-/**
- * API client stubs for the Registrar General Backend.
- *
- * All functions currently delegate to the in-memory Zustand stores (mock data)
- * so the UI keeps working before the backend is ready. When your backend is
- * available:
- *
- *   1. Set `VITE_API_BASE_URL` in `.env` (e.g. https://api.rg.gov.zw).
- *   2. Uncomment the `// return request(...)` line in each function below.
- *   3. Delete the mock fallback line above it.
- *
- * Endpoint shapes are documented per-function and follow REST conventions.
- */
-import type { BirthCertificateApp, NationalIdApp, RecoveryApp } from "./types";
+import type { BirthCertificateApp, NationalIdApp, RecoveryApp, Station } from "./types";
 import { useApps, useStaff, type StaffMember, Role } from "./store";
 
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api";
@@ -109,6 +96,32 @@ export async function toggleStaffActiveApi(id: string): Promise<StaffMember> {
 /** DELETE /staff/:id */
 export async function deleteStaffApi(id: string): Promise<void> {
   return request<void>(`/staff/${id}`, { method: "DELETE" });
+}
+
+/* ------------------------------------------------------------------ */
+/* Stations                                                           */
+/* ------------------------------------------------------------------ */
+
+/** GET /stations */
+export async function listStationsApi(): Promise<{ success: true; data: Station[] }> {
+  return request<{ success: true; data: Station[] }>("/stations");
+}
+
+/** POST /stations */
+export async function createStationApi(
+  payload: Omit<Station, "id" | "stationId">,
+): Promise<Station> {
+  return request<Station>("/stations", { method: "POST", body: payload });
+}
+
+/** PUT /stations/:id */
+export async function updateStationApi(id: string, patch: Partial<Station>): Promise<Station> {
+  return request<Station>(`/stations/${id}`, { method: "PUT", body: patch });
+}
+
+/** DELETE /stations/:id */
+export async function deleteStationApi(id: string): Promise<void> {
+  return request<void>(`/stations/${id}`, { method: "DELETE" });
 }
 
 /* ------------------------------------------------------------------ */
