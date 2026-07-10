@@ -21,7 +21,7 @@ interface AuthUser {
 }
 
 export interface StaffMember {
-  id: string;
+  _id: string;
   staffId: string;
   firstName: string;
   surname: string;

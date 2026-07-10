@@ -654,7 +654,7 @@ function StaffTab({
     setAddOpen(true);
   };
   const openEdit = (s: StaffMember) => {
-    setEditingId(s.id);
+    setEditingId(s._id);
     setDraft({
       firstName: s.firstName,
       surname: s.surname,
@@ -772,7 +772,7 @@ function StaffTab({
           </thead>
           <tbody className="divide-y divide-border">
             {filtered.map((s) => (
-              <tr key={s.id}>
+              <tr key={s._id}>
                 <td className="px-5 py-3">
                   <div className="font-medium">
                     {s.firstName} {s.surname}
@@ -800,11 +800,11 @@ function StaffTab({
                   <Button
                     size="sm"
                     variant="ghost"
-                    disabled={isToggling === s.id}
+                    disabled={isToggling === s._id}
                     onClick={async () => {
-                      setIsToggling(s.id);
+                      setIsToggling(s._id);
                       try {
-                        await toggleStaffActiveApi(s.id);
+                        await toggleStaffActiveApi(s._id);
                         forceRefetch();
                       } catch (error) {
                         toast.error("Failed to update status.");
@@ -813,7 +813,7 @@ function StaffTab({
                       }
                     }}
                   >
-                    {isToggling === s.id ? (
+                    {isToggling === s._id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : s.status ? (
                       "Suspend"
@@ -1072,7 +1072,7 @@ function ApplicationsTab({ stations }: { stations: Station[] }) {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-sm">
-        <div className="flex-1 min-w-[220px]">
+        <div className="flex-1 min-w-55">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
