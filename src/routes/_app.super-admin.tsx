@@ -35,6 +35,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
@@ -54,10 +55,11 @@ import {
   updateStationApi,
   deleteStationApi,
   listStationsApi,
+  listProvincesApi,
   deleteStaffApi,
   toggleStaffActiveApi,
 } from "@/lib/api";
-import type { Station } from "@/lib/types";
+import type { Province, Station } from "@/lib/types";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -70,11 +72,17 @@ function SuperAdminPage() {
   const user = useAuth((s) => s.user);
   if (user && user.role !== "Super Administrator") return <Navigate to="/dashboard" />;
 
+  const [provinces, setProvinces] = useState<Province[]>([]);
   const [stations, setStations] = useState<Station[]>([]);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [refetchStaff, setRefetchStaff] = useState(0);
   const [refetchStations, setRefetchStations] = useState(0);
 
+  useEffect(() => {
+    listProvincesApi().then((res) => {
+      setProvinces(res.data);
+    });
+  }, []);
   useEffect(() => {
     listStaffApi().then((res) => {
       setStaff(res.data);
@@ -100,14 +108,14 @@ function SuperAdminPage() {
 
   const stationStats = useMemo(() => {
     return stations.map((st) => {
-      const apps = allApps.filter((a) => a.stationId === st.id);
+      const apps = allApps.filter((a) => a.stationId === st._id);
       return {
         station: st,
         total: apps.length,
         approved: apps.filter((a) => a.status === "Approved").length,
         rejected: apps.filter((a) => a.status === "Rejected").length,
         pending: apps.filter((a) => a.status === "Pending").length,
-        employees: staff.filter((s) => s.stationId === st.id).length,
+        employees: staff.filter((s) => s.stationId === st._id).length,
       };
     });
   }, [stations, allApps, staff]);
@@ -190,7 +198,13 @@ function SuperAdminPage() {
                             <MapPin className="h-3 w-3" /> {s.station.location.town}
                           </div>
                           <div>
-                            {s.station.location.district}, {s.station.location.province}
+                            {provinces
+                              .find((p) => p._id === s.station.location.province)
+                              ?.districts.find((d) => d._id === s.station.location.district)
+                              ?.name ?? s.station.location.district}
+                            ,{" "}
+                            {provinces.find((p) => p._id === s.station.location.province)?.name ??
+                              s.station.location.province}
                           </div>
                         </td>
                         <td className="px-5 py-3 font-semibold">{s.employees}</td>
@@ -216,7 +230,11 @@ function SuperAdminPage() {
           </TabsContent>
 
           <TabsContent value="stations" className="mt-4">
-            <StationsTab stations={stations} forceRefetch={forceRefetchStations} />
+            <StationsTab
+              stations={stations}
+              forceRefetch={forceRefetchStations}
+              provinces={provinces}
+            />
           </TabsContent>
 
           <TabsContent value="staff" className="mt-4">
@@ -234,14 +252,16 @@ function SuperAdminPage() {
 
 // ─── Stations Tab ─────────────────────────────────────────────────────────
 
-type StationDraft = Omit<Station, "id" | "stationId">;
+type StationDraft = Omit<Station, "_id" | "stationId">;
 
 function StationsTab({
   stations,
   forceRefetch,
+  provinces,
 }: {
   stations: Station[];
   forceRefetch: () => void;
+  provinces: Province[];
 }) {
   const [q, setQ] = useState("");
   const [addOpen, setAddOpen] = useState(false);
@@ -260,13 +280,30 @@ function StationsTab({
   });
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-  const filtered = stations.filter(
-    (s) =>
-      q.trim() === "" ||
-      s.stationName.toLowerCase().includes(q.toLowerCase()) ||
-      s.location.province.toLowerCase().includes(q.toLowerCase()) ||
-      s.location.district.toLowerCase().includes(q.toLowerCase()),
-  );
+  const searchableStations = useMemo(() => {
+    if (!provinces.length) return [];
+    return stations.map((s) => {
+      const province = provinces.find((p) => p._id === s.location.province);
+      const provinceName = province?.name ?? "";
+      const districtName =
+        province?.districts.find((d) => d._id === s.location.district)?.name ?? "";
+      return {
+        ...s,
+        provinceName,
+        districtName,
+      };
+    });
+  }, [stations, provinces]);
+
+  const filtered = searchableStations.filter((s) => {
+    if (q.trim() === "") return true;
+    const searchTerm = q.toLowerCase();
+    return (
+      s.stationName.toLowerCase().includes(searchTerm) ||
+      s.provinceName.toLowerCase().includes(searchTerm) ||
+      s.districtName.toLowerCase().includes(searchTerm)
+    );
+  });
 
   const openAdd = () => {
     setDraft({
@@ -277,7 +314,7 @@ function StationsTab({
     setAddOpen(true);
   };
   const openEdit = (s: Station) => {
-    setEditingId(s.id);
+    setEditingId(s._id);
     setDraft({
       stationName: s.stationName,
       location: {
@@ -301,10 +338,10 @@ function StationsTab({
     if (err) return toast.error(err);
     setIsSubmitting(true);
     try {
-      const res = await createStationApi(draft);
+      await createStationApi(draft);
       setAddOpen(false);
-      toast.success(res.message || "Station added");
       forceRefetch();
+      toast.success("Station created successfully.");
     } catch (error) {
       const err = error as { message?: string };
       toast.error(err.message ?? "Failed to add station.");
@@ -318,10 +355,10 @@ function StationsTab({
     if (err) return toast.error(err);
     setIsSubmitting(true);
     try {
-      const res = await updateStationApi(editingId, draft);
+      await updateStationApi(editingId, draft);
       setEditingId(null);
-      toast.success(res.message || "Station updated");
       forceRefetch();
+      toast.success("Station updated successfully.");
     } catch (error) {
       const err = error as { message?: string };
       toast.error(err.message ?? "Failed to update station.");
@@ -333,10 +370,10 @@ function StationsTab({
     if (!confirmDelete) return;
     setIsDeleting(true);
     try {
-      const res = await deleteStationApi(confirmDelete);
+      await deleteStationApi(confirmDelete);
       setConfirmDelete(null);
-      toast.success(res.message || "Station deleted");
       forceRefetch();
+      toast.success("Station deleted successfully.");
     } catch (error) {
       const err = error as { message?: string };
       toast.error(err.message ?? "Failed to delete station.");
@@ -372,8 +409,16 @@ function StationsTab({
               <tr key={s.stationId}>
                 <td className="px-5 py-3 font-mono text-xs">{s.stationId}</td>
                 <td className="px-5 py-3 font-medium">{s.stationName}</td>
-                <td className="px-5 py-3">{s.location.province}</td>
-                <td className="px-5 py-3">{s.location.district}</td>
+                <td className="px-5 py-3">
+                  {provinces.find((p) => p._id === s.location.province)?.name ??
+                    s.location.province}
+                </td>
+                <td className="px-5 py-3">
+                  {provinces
+                    .find((p) => p._id === s.location.province)
+                    ?.districts.find((d) => d._id === s.location.district)?.name ??
+                    s.location.district}
+                </td>
                 <td className="px-5 py-3">{s.location.town}</td>
                 <td className="px-5 py-3 text-right">
                   <Button size="sm" variant="ghost" onClick={() => openEdit(s)}>
@@ -383,7 +428,7 @@ function StationsTab({
                     size="sm"
                     variant="ghost"
                     className="text-destructive"
-                    onClick={() => setConfirmDelete(s.id)}
+                    onClick={() => setConfirmDelete(s._id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -408,6 +453,7 @@ function StationsTab({
         isSubmitting={isSubmitting}
         onSubmit={submitAdd}
         submitLabel="Create station"
+        provinces={provinces}
       />
       <StationDialog
         open={!!editingId}
@@ -420,6 +466,7 @@ function StationsTab({
         isSubmitting={isSubmitting}
         onSubmit={submitEdit}
         submitLabel="Save changes"
+        provinces={provinces}
       />
       <ConfirmModal
         open={!!confirmDelete}
@@ -446,6 +493,7 @@ function StationDialog({
   onSubmit,
   isSubmitting,
   submitLabel,
+  provinces,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -455,13 +503,29 @@ function StationDialog({
   onSubmit: () => void;
   isSubmitting: boolean;
   submitLabel: string;
+  provinces: Province[];
 }) {
   const set = (patch: Partial<StationDraft>) => setDraft({ ...draft, ...patch });
+  const selectedProvince = useMemo(
+    () => provinces.find((p) => p._id === draft.location.province),
+    [provinces, draft.location.province],
+  );
+  const districts = selectedProvince?.districts ?? [];
+  useEffect(() => {
+    if (selectedProvince && !districts.find((d) => d._id === draft.location.district))
+      set({ location: { ...draft.location, district: "" } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProvince]);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {title.startsWith("Add")
+              ? "Fill in the details for the new station."
+              : "Update the station details."}
+          </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
@@ -481,17 +545,42 @@ function StationDialog({
           </div>
           <div className="space-y-1.5">
             <Label>Province</Label>
-            <Input
+            <Select
               value={draft.location.province}
-              onChange={(e) => set({ location: { ...draft.location, province: e.target.value } })}
-            />
+              onValueChange={(v) =>
+                set({ location: { ...draft.location, province: v, district: "" } })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a province" />
+              </SelectTrigger>
+              <SelectContent>
+                {provinces.map((p) => (
+                  <SelectItem key={p._id} value={p._id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label>District</Label>
-            <Input
+            <Select
               value={draft.location.district}
-              onChange={(e) => set({ location: { ...draft.location, district: e.target.value } })}
-            />
+              onValueChange={(v) => set({ location: { ...draft.location, district: v } })}
+              disabled={!draft.location.province || districts.length === 0}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a district" />
+              </SelectTrigger>
+              <SelectContent>
+                {districts.map((d) => (
+                  <SelectItem key={d._id} value={d._id}>
+                    {d.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Town</Label>
@@ -539,7 +628,7 @@ function StaffTab({
     phone: "",
     nationalIdNumber: "",
     role: "Registrar Officer",
-    stationId: stations[0]?.id ?? "",
+    stationId: stations.length > 0 ? stations[0]._id : "",
     password: "",
     status: true,
   });
@@ -574,7 +663,7 @@ function StaffTab({
       nationalIdNumber: s.nationalIdNumber,
       role: s.role,
       stationId: s.stationId,
-      password: s.password,
+      password: "", // Don't pre-fill password
       status: s.status,
     });
   };
@@ -657,7 +746,7 @@ function StaffTab({
           <SelectContent>
             <SelectItem value="all">All stations</SelectItem>
             {stations.map((s) => (
-              <SelectItem key={s.id} value={s.id}>
+              <SelectItem key={s._id} value={s._id}>
                 {s.stationName}
               </SelectItem>
             ))}
@@ -695,7 +784,7 @@ function StaffTab({
                 <td className="px-5 py-3 font-mono text-xs">{s.staffId}</td>
                 <td className="px-5 py-3">{s.role}</td>
                 <td className="px-5 py-3 text-xs">
-                  {stations.find((x) => x.id === s.stationId)?.stationName ?? s.stationId}
+                  {stations.find((x) => x._id === s.stationId)?.stationName ?? s.stationId}
                 </td>
                 <td className="px-5 py-3 text-xs">
                   {s.status ? (
@@ -819,6 +908,11 @@ function StaffDialogSA({
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {mode === "add"
+              ? "Fill in the details for the new staff member."
+              : "Update the staff member's details."}
+          </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
@@ -850,7 +944,11 @@ function StaffDialogSA({
           </div>
           <div className="space-y-1.5">
             <Label>Employee #</Label>
-            <Input value={mode === "edit" ? (draft as any).staffId : ""} disabled readOnly />
+            <Input
+              value={mode === "edit" ? (draft as StaffMember).staffId : ""}
+              disabled
+              readOnly
+            />
             <p className="text-[11px] text-muted-foreground">
               {mode === "add" ? "Auto-generated." : "Cannot change."}
             </p>
@@ -882,7 +980,7 @@ function StaffDialogSA({
               <SelectContent>
                 {isSuper ? <SelectItem value="ALL">All stations (system-wide)</SelectItem> : null}
                 {stations.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
+                  <SelectItem key={s._id} value={s._id}>
                     {s.stationName}
                   </SelectItem>
                 ))}
@@ -992,7 +1090,7 @@ function ApplicationsTab({ stations }: { stations: Station[] }) {
           <SelectContent>
             <SelectItem value="all">All stations</SelectItem>
             {stations.map((s) => (
-              <SelectItem key={s.id} value={s.id}>
+              <SelectItem key={s._id} value={s._id}>
                 {s.stationName}
               </SelectItem>
             ))}
@@ -1019,7 +1117,7 @@ function ApplicationsTab({ stations }: { stations: Station[] }) {
                 <td className="px-5 py-3 font-medium">{r.name}</td>
                 <td className="px-5 py-3">{r.type}</td>
                 <td className="px-5 py-3 text-xs">
-                  {stations.find((s) => s.id === r.stationId)?.name ?? r.stationId}
+                  {stations.find((s) => s._id === r.stationId)?.stationName ?? r.stationId}
                 </td>
                 <td className="px-5 py-3 text-muted-foreground">
                   {format(new Date(r.date), "dd MMM yyyy")}

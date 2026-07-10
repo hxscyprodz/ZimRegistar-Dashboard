@@ -1,6 +1,17 @@
 export type AppStatus = "Pending" | "Approved" | "Rejected";
 export type PrintStatus = "Not Printed" | "Printed";
 
+export interface District {
+  _id: string;
+  name: string;
+}
+
+export interface Province {
+  _id: string;
+  name: string;
+  districts: District[];
+}
+
 export interface Location {
   address: string;
   province: string;
@@ -8,7 +19,7 @@ export interface Location {
   town: string;
 }
 export interface Station {
-  id: string;
+  _id: string;
   stationId: string;
   location: Location;
   stationName: string;
