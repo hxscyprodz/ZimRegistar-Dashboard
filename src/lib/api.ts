@@ -1,4 +1,4 @@
-import type { BirthCertificateApp, NationalIdApp, RecoveryApp, Station } from "./types";
+import type { BirthCertificateApp, NationalIdApp, Province, RecoveryApp, Station } from "./types";
 import { useApps, useStaff, type StaffMember, Role } from "./store";
 
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api";
@@ -122,6 +122,15 @@ export async function updateStationApi(id: string, patch: Partial<Station>): Pro
 /** DELETE /stations/:id */
 export async function deleteStationApi(id: string): Promise<void> {
   return request<void>(`/stations/${id}`, { method: "DELETE" });
+}
+
+/* ------------------------------------------------------------------ */
+/* Provinces                                                          */
+/* ------------------------------------------------------------------ */
+
+/** GET /provinces */
+export async function listProvincesApi(): Promise<{ success: true; data: Province[] }> {
+  return request<{ success: true; data: Province[] }>("/provinces");
 }
 
 /* ------------------------------------------------------------------ */
