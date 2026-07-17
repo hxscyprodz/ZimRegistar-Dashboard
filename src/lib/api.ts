@@ -1,4 +1,11 @@
-import type { BirthCertificateApp, NationalIdApp, Province, RecoveryApp, Station } from "./types";
+import type {
+  BirthCertificateApp,
+  BirthCertificateResponse,
+  NationalIdApp,
+  Province,
+  RecoveryApp,
+  Station,
+} from "./types";
 import { useApps, useStaff, type StaffMember, Role } from "./store";
 
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api";
@@ -147,9 +154,8 @@ const endpointFor = (kind: AppKind) =>
       : "/applications/document-recovery";
 
 /** GET /applications/birth-certificates */
-export async function listBirthApi(): Promise<BirthCertificateApp[]> {
-  // return request<BirthCertificateApp[]>(endpointFor("birth"));
-  return useApps.getState().birth;
+export async function listBirthApi(): Promise<BirthCertificateResponse> {
+  return request<BirthCertificateResponse>(endpointFor("birth"));
 }
 
 /** GET /applications/national-id */
@@ -165,21 +171,28 @@ export async function listRecoveryApi(): Promise<RecoveryApp[]> {
 }
 
 /** GET /applications/:kind/:id */
-export async function getApplicationApi(kind: AppKind, id: string) {
-  // return request(`${endpointFor(kind)}/${id}`);
-  return useApps.getState()[kind].find((a) => a.id === id) ?? null;
+export async function getApplicationApi(kind: AppKind, applicationId: string) {
+  return request(`${endpointFor(kind)}/${applicationId}`);
 }
 
 /** POST /applications/:kind/:id/approve */
-export async function approveApplicationApi(kind: AppKind, id: string, by: string) {
-  // return request(`${endpointFor(kind)}/${id}/approve`, { method: "POST", body: { by } });
-  useApps.getState().approve(kind, id, by);
+export async function approveApplicationApi(kind: AppKind, applicationId: string, by: string) {
+  console.log(by);
+  return request(`${endpointFor(kind)}/${applicationId}/approve`, {
+    method: "PATCH",
+  });
 }
 
 /** POST /applications/:kind/:id/reject */
-export async function rejectApplicationApi(kind: AppKind, id: string, reason: string, by: string) {
-  // return request(`${endpointFor(kind)}/${id}/reject`, { method: "POST", body: { reason, by } });
-  useApps.getState().reject(kind, id, reason, by);
+export async function rejectApplicationApi(
+  kind: AppKind,
+  applicationId: string,
+  rejectionReason: string,
+) {
+  return request(`${endpointFor(kind)}/${applicationId}/reject`, {
+    method: "PATCH",
+    body: { rejectionReason },
+  });
 }
 
 /** POST /applications/:kind/:id/print  →  mark printed */

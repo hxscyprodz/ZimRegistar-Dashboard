@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
 import { useApps, useUserStation, filterByStation } from "@/lib/store";
 import { format } from "date-fns";
+import type { BirthCertificateApp } from "@/lib/types";
 
 export const Route = createFileRoute("/_app/applications/birth-certificates")({
   head: () => ({ meta: [{ title: "Birth Certificate Applications" }] }),
@@ -18,7 +19,9 @@ export const Route = createFileRoute("/_app/applications/birth-certificates")({
 
 function BirthCertificateRoute() {
   const matchRoute = useMatchRoute();
-  const isDetailRoute = Boolean(matchRoute({ to: "/applications/birth-certificates/$id", fuzzy: true }));
+  const isDetailRoute = Boolean(
+    matchRoute({ to: "/applications/birth-certificates/$id", fuzzy: true }),
+  );
 
   return isDetailRoute ? <Outlet /> : <BirthCertList />;
 }
@@ -26,7 +29,7 @@ function BirthCertificateRoute() {
 function BirthCertList() {
   const birthAll = useApps((s) => s.birth);
   const stationId = useUserStation();
-  const birth = useMemo(() => filterByStation(birthAll, stationId), [birthAll, stationId]);
+  const list = useMemo(() => filterByStation(birthAll, stationId), [birthAll, stationId]);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("All");
   const [sort, setSort] = useState("date-desc");
@@ -34,37 +37,58 @@ function BirthCertList() {
   const pageSize = 8;
 
   const filtered = useMemo(() => {
-    let list = birth.filter((a) =>
-      (status === "All" || a.status === status) &&
-      (q === "" ||
-        a.applicantName.toLowerCase().includes(q.toLowerCase()) ||
-        a.applicationNumber.toLowerCase().includes(q.toLowerCase()))
+    let filteredList = list.filter(
+      (a) =>
+        (status === "All" || a.status === status) &&
+        (q === "" ||
+          a.firstName.toLowerCase().includes(q.toLowerCase()) ||
+          a.applicationId.toLowerCase().includes(q.toLowerCase())),
     );
-    list = [...list].sort((a, b) => {
-      if (sort === "date-desc") return +new Date(b.dateSubmitted) - +new Date(a.dateSubmitted);
-      if (sort === "date-asc") return +new Date(a.dateSubmitted) - +new Date(b.dateSubmitted);
-      if (sort === "name-asc") return a.applicantName.localeCompare(b.applicantName);
-      return b.applicantName.localeCompare(a.applicantName);
+    filteredList = [...filteredList].sort((a, b) => {
+      if (sort === "date-desc") return +new Date(b.applicationDate) - +new Date(a.applicationDate);
+      if (sort === "date-asc") return +new Date(a.applicationDate) - +new Date(b.applicationDate);
+      if (sort === "name-asc") return a.firstName.localeCompare(b.firstName);
+      return b.firstName.localeCompare(a.firstName);
     });
-    return list;
-  }, [birth, q, status, sort]);
+    return filteredList;
+  }, [list, q, status, sort]);
 
   const total = filtered.length;
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div>
-      <PageHeader title="Birth Certificate Applications" description="Review, approve and reject birth certificate requests submitted by citizens." />
+      <PageHeader
+        title="Birth Certificate Applications"
+        description="Review, approve and reject birth certificate requests submitted by citizens."
+      />
 
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-sm">
-        <SearchBar value={q} onChange={(v) => { setQ(v); setPage(1); }} placeholder="Search by name or application #" />
-        <StatusFilter value={status} onChange={(v) => { setStatus(v); setPage(1); }} />
-        <SortBy value={sort} onChange={setSort} options={[
-          { value: "date-desc", label: "Newest first" },
-          { value: "date-asc", label: "Oldest first" },
-          { value: "name-asc", label: "Name A–Z" },
-          { value: "name-desc", label: "Name Z–A" },
-        ]} />
+        <SearchBar
+          value={q}
+          onChange={(v) => {
+            setQ(v);
+            setPage(1);
+          }}
+          placeholder="Search by name or application #"
+        />
+        <StatusFilter
+          value={status}
+          onChange={(v) => {
+            setStatus(v);
+            setPage(1);
+          }}
+        />
+        <SortBy
+          value={sort}
+          onChange={setSort}
+          options={[
+            { value: "date-desc", label: "Newest first" },
+            { value: "date-asc", label: "Oldest first" },
+            { value: "name-asc", label: "Name A–Z" },
+            { value: "name-desc", label: "Name Z–A" },
+          ]}
+        />
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -83,18 +107,27 @@ function BirthCertList() {
             </thead>
             <tbody className="divide-y divide-border">
               {paged.map((a) => (
-                <tr key={a.id} className="hover:bg-muted/30">
-                  <td className="px-5 py-3 font-mono text-xs">{a.applicationNumber}</td>
-                  <td className="px-5 py-3 font-medium">{a.applicantName}</td>
-                  <td className="px-5 py-3 text-muted-foreground">{format(new Date(a.dateSubmitted), "dd MMM yyyy")}</td>
-                  <td className="px-5 py-3">{a.child.cityOfBirth}</td>
-                  <td className="px-5 py-3 text-muted-foreground">
-                    {a.mother.firstName} {a.mother.lastName} & {a.father.firstName} {a.father.lastName}
+                <tr key={a._id} className="hover:bg-muted/30">
+                  <td className="px-5 py-3 font-mono text-xs">{a.applicationId}</td>
+                  <td className="px-5 py-3 font-medium">
+                    {a.firstName} {a.surname}
                   </td>
-                  <td className="px-5 py-3"><StatusBadge status={a.status} /></td>
+                  <td className="px-5 py-3 text-muted-foreground">
+                    {format(new Date(a.applicationDate), "dd MMM yyyy")}
+                  </td>
+                  <td className="px-5 py-3">{a.placeOfBirth}</td>
+                  <td className="px-5 py-3 text-muted-foreground">
+                    {a.father.firstName} {a.father.surname} & {a.mother.firstName}{" "}
+                    {a.mother.surname}
+                  </td>
+                  <td className="px-5 py-3">
+                    <StatusBadge status={a.status} />
+                  </td>
                   <td className="px-5 py-3 text-right">
-                    <Link to="/applications/birth-certificates/$id" params={{ id: a.id }}>
-                      <Button size="sm" variant="outline"><Eye className="mr-1.5 h-4 w-4" /> View</Button>
+                    <Link to="/applications/birth-certificates/$id" params={{ id: a._id }}>
+                      <Button size="sm" variant="outline">
+                        <Eye className="mr-1.5 h-4 w-4" /> View
+                      </Button>
                     </Link>
                   </td>
                 </tr>
@@ -102,7 +135,13 @@ function BirthCertList() {
             </tbody>
           </table>
           {paged.length === 0 ? (
-            <div className="p-6"><EmptyState icon={FileText} title="No applications found" description="Try adjusting your search or filters." /></div>
+            <div className="p-6">
+              <EmptyState
+                icon={FileText}
+                title="No applications found"
+                description="Try adjusting your search or filters."
+              />
+            </div>
           ) : null}
         </div>
         <div className="px-5 pb-4 pt-3">

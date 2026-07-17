@@ -27,41 +27,53 @@ export interface Station {
 }
 
 export interface BaseApplication {
-  id: string;
-  applicationNumber: string;
+  _id: string;
+  applicationId: string;
   applicantName: string;
-  dateSubmitted: string;
+  applicationDate: string;
   status: AppStatus;
   stationId: string;
   rejectionReason?: string;
   rejectedBy?: string;
-  rejectedAt?: string;
-  approvedAt?: string;
+  rejectedDate?: string;
+  approvedDate?: string;
   approvedBy?: string;
   printStatus?: PrintStatus;
   printedAt?: string;
 }
 
+export interface Parent {
+  firstName: string;
+  surname: string;
+  nationalIdNumber: string;
+}
+
 export interface BirthCertificateApp extends BaseApplication {
-  type: "Birth Certificate";
-  child: {
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string;
-    gender: "Male" | "Female";
-    address: string;
-    hospital: string;
-    cityOfBirth: string;
-  };
-  mother: { firstName: string; lastName: string; nationalId: string };
-  father: { firstName: string; lastName: string; nationalId: string };
+  id: string;
+  applicationType: "Birth Certificate";
+  firstName: string;
+  surname: string;
+  dateOfBirth: string;
+  sex: string;
+  hospitalOfBirth: string;
+  address: string;
+  placeOfBirth: string;
+  father: Parent;
+  mother: Parent;
   documents: {
-    birthCertificate?: string;
+    fatherNationalId: string;
+    motherNationalId: string;
+    hospitalRecord: string;
   };
 }
 
+export interface BirthCertificateResponse {
+  success: boolean;
+  data: BirthCertificateApp[];
+}
+
 export interface NationalIdApp extends BaseApplication {
-  type: "National ID";
+  applicationType: "National ID";
   applicant: {
     firstName: string;
     lastName: string;

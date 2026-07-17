@@ -8,12 +8,14 @@ import type {
   AppStatus,
   PrintStatus,
   Station,
+  BirthCertificateResponse,
 } from "./types";
 import { seedBirth, seedNationalId, seedRecovery } from "./mockData";
 
 export type Role = "Super Administrator" | "Administrator" | "Supervisor" | "Registrar Officer";
 
 interface AuthUser {
+  id: string;
   employeeNumber: string;
   name: string;
   role: Role;
@@ -246,11 +248,11 @@ export const useStations = create<StationsState>()(
         })),
       updateStation: (id, patch) =>
         set((state) => ({
-          stations: state.stations.map((st) => (st.id === id ? { ...st, ...patch } : st)),
+          stations: state.stations.map((st) => (st.stationId === id ? { ...st, ...patch } : st)),
         })),
       deleteStation: (id) =>
         set((state) => ({
-          stations: state.stations.filter((st) => st.id !== id),
+          stations: state.stations.filter((st) => st.stationId !== id),
         })),
     }),
     { name: "rg-stations", version: 1 },
@@ -306,6 +308,9 @@ interface AppsState {
   birth: BirthCertificateApp[];
   nationalId: NationalIdApp[];
   recovery: RecoveryApp[];
+  setBirth: (data: BirthCertificateApp[]) => void;
+  setNationalId: (data: NationalIdApp[]) => void;
+  setRecovery: (data: RecoveryApp[]) => void;
   approve: (kind: "birth" | "nationalId" | "recovery", id: string, by: string) => void;
   reject: (
     kind: "birth" | "nationalId" | "recovery",
@@ -339,6 +344,9 @@ export const useApps = create<AppsState>()(
       birth: seedBirth,
       nationalId: seedNationalId,
       recovery: seedRecovery,
+      setBirth: (data) => set({ birth: data }),
+      setNationalId: (data) => set({ nationalId: data }),
+      setRecovery: (data) => set({ recovery: data }),
       approve: (kind, id, by) =>
         set(
           (s) =>

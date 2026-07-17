@@ -2,7 +2,8 @@ import { createFileRoute, Outlet, Navigate } from "@tanstack/react-router";
 import { useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
-import { useAuth } from "@/lib/store";
+import { useAuth, useApps } from "@/lib/store";
+import { listBirthApi, listNationalIdApi, listRecoveryApi } from "@/lib/api";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -10,13 +11,16 @@ export const Route = createFileRoute("/_app")({
 
 function AppLayout() {
   const user = useAuth((s) => s.user);
-  const authReady = useAuth((s) => s.ready);
-  const restoreSession = useAuth((s) => s.restoreSession);
+  const { ready: authReady, restoreSession } = useAuth.getState();
+  const { setBirth, setNationalId, setRecovery } = useApps.getState();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
     restoreSession();
-  }, [restoreSession]);
+    listBirthApi().then((res) => setBirth(res.data));
+    listNationalIdApi().then((data) => setNationalId(data));
+    listRecoveryApi().then((data) => setRecovery(data));
+  }, [restoreSession, setBirth, setNationalId, setRecovery]);
 
   if (!authReady) {
     return <div className="min-h-screen bg-background" aria-label="Loading secure session" />;
@@ -25,11 +29,8 @@ function AppLayout() {
   if (!user) {
     return <Navigate to="/auth/login" />;
   }
-  // Super Administrator lands on their own console.
-  if (
-    user.role === "Super Administrator" &&
-    (pathname === "/" || pathname === "/dashboard")
-  ) {
+
+  if (user.role === "Super Administrator" && (pathname === "/" || pathname === "/dashboard")) {
     return <Navigate to="/super-admin" />;
   }
   return (
