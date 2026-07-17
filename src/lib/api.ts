@@ -44,6 +44,7 @@ export function loginApi(phone: string, password: string) {
   type LoginResponse = {
     token: string;
     user: {
+      id: string;
       employeeNumber: string;
       name: string;
       role: "Super Administrator" | "Administrator" | "Supervisor" | "Registrar Officer";

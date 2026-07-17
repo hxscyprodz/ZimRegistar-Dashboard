@@ -20,12 +20,11 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ emp?: string; pwd?: string }>({});
-  const [formError, setFormError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ emp?: string; pwd?: string; form?: string }>({});
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError(null);
+    setErrors({});
     const errs: typeof errors = {};
     if (!phone.trim()) errs.emp = "Phone number is required.";
     if (password.length < 4) errs.pwd = "Password must be at least 4 characters.";
@@ -41,7 +40,7 @@ function LoginPage() {
     } catch (error) {
       const msg =
         "Invalid credentials. Please check your employee number or phone number and password.";
-      setFormError(msg);
+      setErrors({ form: msg });
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -87,12 +86,12 @@ function LoginPage() {
             </div>
           </div>
           <form onSubmit={submit} className="space-y-4">
-            {formError ? (
+            {errors.form ? (
               <div
                 role="alert"
                 className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
               >
-                {formError}
+                {errors.form}
               </div>
             ) : null}
             <div className="space-y-1.5">
@@ -140,27 +139,6 @@ function LoginPage() {
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Sign in securely
             </Button>
-            <div className="rounded-lg border border-dashed border-border bg-muted/40 p-3 text-xs">
-              <p className="mb-1 font-semibold text-foreground">Demo credentials</p>
-              <ul className="space-y-0.5 text-muted-foreground">
-                <li>
-                  <span className="font-mono">RG-00001</span> /{" "}
-                  <span className="font-mono">root1234</span> · Super Administrator
-                </li>
-                <li>
-                  <span className="font-mono">RG-01902</span> /{" "}
-                  <span className="font-mono">admin1234</span> · Administrator
-                </li>
-                <li>
-                  <span className="font-mono">RG-03317</span> /{" "}
-                  <span className="font-mono">super1234</span> · Supervisor
-                </li>
-                <li>
-                  <span className="font-mono">RG-04821</span> /{" "}
-                  <span className="font-mono">officer1234</span> · Registrar Officer
-                </li>
-              </ul>
-            </div>
             <p className="text-center text-xs text-muted-foreground">
               By signing in you agree to the official conduct policy of the RG Office.
             </p>
