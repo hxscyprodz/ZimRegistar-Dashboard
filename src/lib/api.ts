@@ -6,7 +6,7 @@ import type {
   RecoveryApp,
   Station,
 } from "./types";
-import { useApps, useStaff, type StaffMember, Role } from "./store";
+import { useApps, type StaffMember, Role } from "./store";
 
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api";
 
