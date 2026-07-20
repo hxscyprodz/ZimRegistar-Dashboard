@@ -14,11 +14,10 @@ function AppLayout() {
   const { ready: authReady, restoreSession } = useAuth.getState();
   const { setBirth, setNationalId, setRecovery } = useApps.getState();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-
   useEffect(() => {
     restoreSession();
     listBirthApi().then((res) => setBirth(res.data));
-    listNationalIdApi().then((data) => setNationalId(data));
+    listNationalIdApi().then((res) => setNationalId(res.data));
     listRecoveryApi().then((data) => setRecovery(data));
   }, [restoreSession, setBirth, setNationalId, setRecovery]);
 

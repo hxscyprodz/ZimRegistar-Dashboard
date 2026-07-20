@@ -72,20 +72,20 @@ export interface BirthCertificateResponse {
   data: BirthCertificateApp[];
 }
 
+export interface BirthDetails {
+  firstName: string;
+  surname: string;
+  dateOfBirth: string;
+  sex: string;
+}
 export interface NationalIdApp extends BaseApplication {
+  _id: string;
   applicationType: "National ID";
-  applicant: {
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string;
-    gender: "Male" | "Female";
-    nationality: string;
-    address: string;
-    contactNumber: string;
-  };
+  nationalIdNumber: string;
+  contactNumber: string;
+  birthDetails: BirthDetails;
   documents: {
     birthCertificate: string;
-    photo?: string;
   };
 }
 
