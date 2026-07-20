@@ -101,7 +101,7 @@ function SuperAdminPage() {
     () => [
       ...birth.map((a) => ({ ...a, kind: "Birth Certificate" as const })),
       ...nationalId.map((a) => ({ ...a, kind: "National ID" as const })),
-      ...recovery.map((a) => ({ ...a, kind: "Document Recovery" as const })),
+      //...recovery.map((a) => ({ ...a, kind: "Document Recovery" as const })),
     ],
     [birth, nationalId, recovery],
   );
@@ -1025,27 +1025,27 @@ function ApplicationsTab({ stations }: { stations: Station[] }) {
   const rows = useMemo(() => {
     const rows = [
       ...birth.map((a) => ({
-        id: `b-${a.id}`,
-        appId: a.id,
-        num: a.applicationNumber,
-        name: a.applicantName,
+        id: a._id,
+        appId: a._id,
+        num: a.applicationId,
+        name: `${a.firstName} ${a.surname}`,
         type: "Birth Certificate",
         stationId: a.stationId,
         status: a.status,
-        date: a.dateSubmitted,
+        date: a.applicationDate,
         path: "/applications/birth-certificates/$id",
       })),
       ...nationalId.map((a) => ({
-        id: `n-${a.id}`,
-        appId: a.id,
-        num: a.applicationNumber,
-        name: a.applicantName,
+        id: a._id,
+        appId: a._id,
+        num: a.applicationId,
+        name: `${a.birthDetails.firstName} ${a.birthDetails.surname}`,
         type: "National ID",
         stationId: a.stationId,
         status: a.status,
-        date: a.dateSubmitted,
+        date: a.applicationDate,
         path: "/applications/national-id/$id",
-      })),
+      })) /*
       ...recovery.map((a) => ({
         id: `r-${a.id}`,
         appId: a.id,
@@ -1054,9 +1054,9 @@ function ApplicationsTab({ stations }: { stations: Station[] }) {
         type: "Document Recovery",
         stationId: a.stationId,
         status: a.status,
-        date: a.dateSubmitted,
+        date: a.applicationDate,
         path: "/applications/document-recovery/$id",
-      })),
+      }))*/,
     ];
     return rows
       .filter((r) => stationFilter === "all" || r.stationId === stationFilter)
@@ -1064,10 +1064,10 @@ function ApplicationsTab({ stations }: { stations: Station[] }) {
         (r) =>
           q.trim() === "" ||
           r.name.toLowerCase().includes(q.toLowerCase()) ||
-          r.num.toLowerCase().includes(q.toLowerCase()),
+          r.num.toString().toLowerCase().includes(q.toLowerCase()),
       )
       .sort((a, b) => +new Date(b.date) - +new Date(a.date));
-  }, [birth, nationalId, recovery, q, stationFilter]);
+  }, [birth, nationalId, /*recovery,*/ q, stationFilter]);
 
   return (
     <div>
