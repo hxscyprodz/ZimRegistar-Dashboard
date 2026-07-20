@@ -160,9 +160,8 @@ export async function listBirthApi(): Promise<BirthCertificateResponse> {
 }
 
 /** GET /applications/national-id */
-export async function listNationalIdApi(): Promise<NationalIdApp[]> {
-  // return request<NationalIdApp[]>(endpointFor("nationalId"));
-  return useApps.getState().nationalId;
+export async function listNationalIdApi(): Promise<{ success: true; data: NationalIdApp[] }> {
+  return request<{ success: true; data: NationalIdApp[] }>(endpointFor("nationalId"));
 }
 
 /** GET /applications/document-recovery */
@@ -177,10 +176,10 @@ export async function getApplicationApi(kind: AppKind, applicationId: string) {
 }
 
 /** POST /applications/:kind/:id/approve */
-export async function approveApplicationApi(kind: AppKind, applicationId: string, by: string) {
-  console.log(by);
+export async function approveApplicationApi(kind: AppKind, applicationId: string, userId: string) {
   return request(`${endpointFor(kind)}/${applicationId}/approve`, {
     method: "PATCH",
+    body: { approvedBy: userId },
   });
 }
 

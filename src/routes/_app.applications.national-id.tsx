@@ -32,19 +32,22 @@ function NIDList() {
   const [sort, setSort] = useState("date-desc");
   const [page, setPage] = useState(1);
   const pageSize = 8;
-
   const filtered = useMemo(() => {
-    let r = list.filter((a) =>
-      (status === "All" || a.status === status) &&
-      (q === "" ||
-        a.applicantName.toLowerCase().includes(q.toLowerCase()) ||
-        a.applicationNumber.toLowerCase().includes(q.toLowerCase()))
+    let r = list.filter(
+      (a) =>
+        (status === "All" || a.status === status) &&
+        (q === "" ||
+          `${a.birthDetails.firstName} ${a.birthDetails.surname}`
+            .toLowerCase()
+            .includes(q.toLowerCase()) ||
+          a.applicationId.toString().toLowerCase().includes(q.toLowerCase())),
     );
     r = [...r].sort((a, b) => {
-      if (sort === "date-desc") return +new Date(b.dateSubmitted) - +new Date(a.dateSubmitted);
-      if (sort === "date-asc") return +new Date(a.dateSubmitted) - +new Date(b.dateSubmitted);
-      if (sort === "name-asc") return a.applicantName.localeCompare(b.applicantName);
-      return b.applicantName.localeCompare(a.applicantName);
+      if (sort === "date-desc") return +new Date(b.applicationDate) - +new Date(a.applicationDate);
+      if (sort === "date-asc") return +new Date(a.applicationDate) - +new Date(b.applicationDate);
+      if (sort === "name-asc")
+        return a.birthDetails.firstName.localeCompare(b.birthDetails.firstName);
+      return b.birthDetails.firstName.localeCompare(a.birthDetails.firstName);
     });
     return r;
   }, [list, q, status, sort]);
@@ -53,16 +56,36 @@ function NIDList() {
 
   return (
     <div>
-      <PageHeader title="National ID Applications" description="Process new and renewal National ID requests." />
+      <PageHeader
+        title="National ID Applications"
+        description="Process new and renewal National ID requests."
+      />
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-sm">
-        <SearchBar value={q} onChange={(v) => { setQ(v); setPage(1); }} placeholder="Search applicant or application #" />
-        <StatusFilter value={status} onChange={(v) => { setStatus(v); setPage(1); }} />
-        <SortBy value={sort} onChange={setSort} options={[
-          { value: "date-desc", label: "Newest first" },
-          { value: "date-asc", label: "Oldest first" },
-          { value: "name-asc", label: "Name A–Z" },
-          { value: "name-desc", label: "Name Z–A" },
-        ]} />
+        <SearchBar
+          value={q}
+          onChange={(v) => {
+            setQ(v);
+            setPage(1);
+          }}
+          placeholder="Search applicant or application #"
+        />
+        <StatusFilter
+          value={status}
+          onChange={(v) => {
+            setStatus(v);
+            setPage(1);
+          }}
+        />
+        <SortBy
+          value={sort}
+          onChange={setSort}
+          options={[
+            { value: "date-desc", label: "Newest first" },
+            { value: "date-asc", label: "Oldest first" },
+            { value: "name-asc", label: "Name A–Z" },
+            { value: "name-desc", label: "Name Z–A" },
+          ]}
+        />
       </div>
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <div className="overflow-x-auto">
@@ -82,28 +105,50 @@ function NIDList() {
             </thead>
             <tbody className="divide-y divide-border">
               {paged.map((a) => (
-                <tr key={a.id} className="hover:bg-muted/30">
-                  <td className="px-5 py-3 font-mono text-xs">{a.applicationNumber}</td>
-                  <td className="px-5 py-3 font-medium">{a.applicant.firstName}</td>
-                  <td className="px-5 py-3 font-medium">{a.applicant.lastName}</td>
-                  <td className="px-5 py-3">{a.applicant.dateOfBirth}</td>
-                  <td className="px-5 py-3">{a.applicant.gender}</td>
-                  <td className="px-5 py-3 max-w-[18ch] truncate text-muted-foreground" title={a.applicant.address}>{a.applicant.address}</td>
-                  <td className="px-5 py-3 text-muted-foreground">{format(new Date(a.dateSubmitted), "dd MMM yyyy")}</td>
-                  <td className="px-5 py-3"><StatusBadge status={a.status} /></td>
+                <tr key={a._id} className="hover:bg-muted/30">
+                  <td className="px-5 py-3 font-mono text-xs">{a.applicationId}</td>
+                  <td className="px-5 py-3 font-medium">{a.birthDetails.firstName}</td>
+                  <td className="px-5 py-3 font-medium">{a.birthDetails.surname}</td>
+                  <td className="px-5 py-3">
+                    {format(new Date(a.birthDetails.dateOfBirth), "dd MMM yyyy")}
+                  </td>
+                  <td className="px-5 py-3">{a.birthDetails.sex}</td>
+                  <td
+                    className="px-5 py-3 max-w-[18ch] truncate text-muted-foreground"
+                    title={a.nationalIdNumber}
+                  >
+                    {a.nationalIdNumber}
+                  </td>
+                  <td className="px-5 py-3 text-muted-foreground">
+                    {format(new Date(a.applicationDate), "dd MMM yyyy")}
+                  </td>
+                  <td className="px-5 py-3">
+                    <StatusBadge status={a.status} />
+                  </td>
                   <td className="px-5 py-3 text-right">
-                    <Link to="/applications/national-id/$id" params={{ id: a.id }}>
-                      <Button size="sm" variant="outline"><Eye className="mr-1.5 h-4 w-4" /> View</Button>
+                    <Link to="/applications/national-id/$id" params={{ id: a._id }}>
+                      <Button size="sm" variant="outline">
+                        <Eye className="mr-1.5 h-4 w-4" /> View
+                      </Button>
                     </Link>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {paged.length === 0 ? <div className="p-6"><EmptyState icon={IdCard} title="No applications" /></div> : null}
+          {paged.length === 0 ? (
+            <div className="p-6">
+              <EmptyState icon={IdCard} title="No applications" />
+            </div>
+          ) : null}
         </div>
         <div className="px-5 pb-4 pt-3">
-          <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} />
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={filtered.length}
+            onPageChange={setPage}
+          />
         </div>
       </div>
     </div>
