@@ -56,7 +56,11 @@ function DashboardPage() {
         applicantName: `${a.firstName} ${a.surname}`,
         applicationType: "Birth Certificate",
       })),
-      ...nationalId.map((a) => ({ ...a, applicationType: "National ID" })),
+      ...nationalId.map((a) => ({
+        ...a,
+        applicantName: `${a.birthDetails.firstName} ${a.birthDetails.surname}`,
+        applicationType: "National ID",
+      })),
       ...recovery.map((a) => ({ ...a, applicationType: "Document Recovery" })),
     ],
     [birth, nationalId, recovery],

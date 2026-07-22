@@ -159,7 +159,7 @@ function Print() {
         tone="success"
         onConfirm={() => {
           if (confirmId) {
-            markPrinted(confirmId.kind, confirmId.id, true);
+            markPrinted(confirmId.kind, confirmId.id);
             setConfirmId(null);
             toast.success("Updated");
           }

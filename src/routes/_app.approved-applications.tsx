@@ -32,14 +32,53 @@ function Approved() {
   const [q, setQ] = useState("");
   const [preview, setPreview] = useState<Preview | null>(null);
 
-  const filter = <T extends { applicantName: string; applicationNumber: string; status: string; printStatus?: string }>(arr: T[]) =>
-    arr.filter((a) => a.status === "Approved" && a.printStatus !== "Printed" && (q === "" ||
-      a.applicantName.toLowerCase().includes(q.toLowerCase()) ||
-      a.applicationNumber.toLowerCase().includes(q.toLowerCase())));
+  const aBirth = useMemo(
+    () =>
+      filterByStation(birth, stationId)
+        .filter(
+          (a) =>
+            a.status === "Approved" &&
+            a.printStatus !== "Printed" &&
+            (q === "" ||
+              `${a.firstName} ${a.surname}`.toLowerCase().includes(q.toLowerCase()) ||
+              a.applicationId.toString().toLowerCase().includes(q.toLowerCase())),
+        )
+        .map((a) => ({ ...a, applicantName: `${a.firstName} ${a.surname}` })),
+    [birth, q, stationId],
+  );
 
-  const aBirth = useMemo(() => filter(filterByStation(birth, stationId)), [birth, q, stationId]);
-  const aNid = useMemo(() => filter(filterByStation(nationalId, stationId)), [nationalId, q, stationId]);
-  const aRec = useMemo(() => filter(filterByStation(recovery, stationId)), [recovery, q, stationId]);
+  const aNid = useMemo(
+    () =>
+      filterByStation(nationalId, stationId)
+        .filter(
+          (a) =>
+            a.status === "Approved" &&
+            a.printStatus !== "Printed" &&
+            (q === "" ||
+              `${a.birthDetails.firstName} ${a.birthDetails.surname}`
+                .toLowerCase()
+                .includes(q.toLowerCase()) ||
+              a.applicationId.toString().toLowerCase().includes(q.toLowerCase())),
+        )
+        .map((a) => ({
+          ...a,
+          applicantName: `${a.birthDetails.firstName} ${a.birthDetails.surname}`,
+        })),
+    [nationalId, q, stationId],
+  );
+
+  const aRec = useMemo(
+    () =>
+      filterByStation(recovery, stationId).filter(
+        (a) =>
+          a.status === "Approved" &&
+          a.printStatus !== "Printed" &&
+          (q === "" ||
+            a.applicantName.toLowerCase().includes(q.toLowerCase()) ||
+            a.applicationId.toString().toLowerCase().includes(q.toLowerCase())),
+      ),
+    [recovery, q, stationId],
+  );
 
   const openPreview = (kind: Kind, app: BirthCertificateApp | NationalIdApp | RecoveryApp) => {
     if (kind === "birth") setPreview({ kind, app: app as BirthCertificateApp });
@@ -63,16 +102,26 @@ function Approved() {
           <tbody className="divide-y divide-border">
             {items.map((a) => (
               <tr key={a.id} className="hover:bg-muted/30">
-                <td className="px-5 py-3 font-mono text-xs">{a.applicationNumber}</td>
+                <td className="px-5 py-3 font-mono text-xs">{a.applicationId}</td>
                 <td className="px-5 py-3 font-medium">{a.applicantName}</td>
-                <td className="px-5 py-3 text-muted-foreground">{a.approvedAt ? format(new Date(a.approvedAt), "dd MMM yyyy") : "—"}</td>
-                <td className="px-5 py-3"><StatusBadge status={a.printStatus ?? "Not Printed"} /></td>
+                <td className="px-5 py-3 text-muted-foreground">
+                  {a.approvedDate ? format(new Date(a.approvedDate), "dd MMM yyyy") : "—"}
+                </td>
+                <td className="px-5 py-3">
+                  <StatusBadge status={a.printStatus ?? "Not Printed"} />
+                </td>
                 <td className="px-5 py-3 text-right">
                   <div className="inline-flex gap-2">
                     <Link to={detailBase + "/$id"} params={{ id: a.id }}>
-                      <Button variant="outline" size="sm">View</Button>
+                      <Button variant="outline" size="sm">
+                        View
+                      </Button>
                     </Link>
-                    <Button size="sm" onClick={() => openPreview(kind, a)} disabled={a.printStatus === "Printed"}>
+                    <Button
+                      size="sm"
+                      onClick={() => openPreview(kind, a)}
+                      disabled={a.printStatus === "Printed"}
+                    >
                       <Printer className="mr-1.5 h-4 w-4" /> Print
                     </Button>
                   </div>
@@ -81,14 +130,23 @@ function Approved() {
             ))}
           </tbody>
         </table>
-        {items.length === 0 ? <div className="p-6"><EmptyState icon={CheckCircle2} title="No approved applications" /></div> : null}
+        {items.length === 0 ? (
+          <div className="p-6">
+            <EmptyState icon={CheckCircle2} title="No approved applications" />
+          </div>
+        ) : null}
       </div>
     </div>
   );
 
+  console.log(aBirth);
+
   return (
     <div>
-      <PageHeader title="Approved Applications" description="All approved citizen requests across categories." />
+      <PageHeader
+        title="Approved Applications"
+        description="All approved citizen requests across categories."
+      />
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-sm">
         <SearchBar value={q} onChange={setQ} placeholder="Search by name or application #" />
       </div>
@@ -98,19 +156,32 @@ function Approved() {
           <TabsTrigger value="nid">National IDs ({aNid.length})</TabsTrigger>
           <TabsTrigger value="rec">Recovery ({aRec.length})</TabsTrigger>
         </TabsList>
-        <TabsContent value="birth" className="mt-4"><Table items={aBirth} kind="birth" detailBase="/applications/birth-certificates" /></TabsContent>
-        <TabsContent value="nid" className="mt-4"><Table items={aNid} kind="nationalId" detailBase="/applications/national-id" /></TabsContent>
-        <TabsContent value="rec" className="mt-4"><Table items={aRec} kind="recovery" detailBase="/applications/document-recovery" /></TabsContent>
+        <TabsContent value="birth" className="mt-4">
+          <Table items={aBirth} kind="birth" detailBase="/applications/birth-certificates" />
+        </TabsContent>
+        <TabsContent value="nid" className="mt-4">
+          <Table items={aNid} kind="nationalId" detailBase="/applications/national-id" />
+        </TabsContent>
+        <TabsContent value="rec" className="mt-4">
+          <Table items={aRec} kind="recovery" detailBase="/applications/document-recovery" />
+        </TabsContent>
       </Tabs>
 
-      <Dialog open={!!preview} onOpenChange={(v) => { if (!v) setPreview(null); }}>
+      <Dialog
+        open={!!preview}
+        onOpenChange={(v) => {
+          if (!v) setPreview(null);
+        }}
+      >
         <DialogContent className="print-document-dialog max-w-5xl">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>
-                {preview?.kind === "birth" ? "Birth Certificate Preview" :
-                 preview?.kind === "nationalId" ? "National ID Card Preview" :
-                 "Recovery Slip Preview"}
+                {preview?.kind === "birth"
+                  ? "Birth Certificate Preview"
+                  : preview?.kind === "nationalId"
+                    ? "National ID Card Preview"
+                    : "Recovery Slip Preview"}
               </span>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => window.print()}>
@@ -121,7 +192,7 @@ function Approved() {
                   className="bg-emerald-600 text-white hover:bg-emerald-600/90"
                   onClick={() => {
                     if (!preview) return;
-                    markPrinted(preview.kind, preview.app.id);
+                    markPrinted(preview.kind, preview.app._id);
                     setPreview(null);
                     toast.success("Marked as printed");
                   }}
@@ -147,24 +218,48 @@ function RecoverySlip({ app }: { app: RecoveryApp }) {
     <div className="mx-auto w-full max-w-3xl bg-white p-10 text-sm text-black shadow-lg">
       <div className="border-b-2 border-[#0A3D91] pb-3">
         <p className="text-xs uppercase tracking-widest text-[#0A3D91]">Republic of Zimbabwe</p>
-        <h2 className="font-display text-2xl font-bold text-[#0A3D91]">Document Recovery Collection Slip</h2>
+        <h2 className="font-display text-2xl font-bold text-[#0A3D91]">
+          Document Recovery Collection Slip
+        </h2>
       </div>
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <p><strong>Application #:</strong> {app.applicationNumber}</p>
-        <p><strong>Document:</strong> {app.documentType}</p>
-        <p><strong>Applicant:</strong> {app.applicant.firstName} {app.applicant.lastName}</p>
-        <p><strong>National ID:</strong> {app.applicant.nationalId ?? "—"}</p>
-        <p><strong>Phone:</strong> {app.applicant.contactNumber}</p>
-        <p><strong>Approved:</strong> {app.approvedAt ? format(new Date(app.approvedAt), "dd MMM yyyy") : "—"}</p>
-        <p className="col-span-2"><strong>Address:</strong> {app.applicant.address}</p>
-        <p className="col-span-2"><strong>Reason:</strong> {app.reason}</p>
-        <p className="col-span-2"><strong>Police Report:</strong> {app.policeReport.reportNumber} · {app.policeReport.station} · {app.policeReport.date}</p>
+        <p>
+          <strong>Application #:</strong> {app.applicationId}
+        </p>
+        <p>
+          <strong>Document:</strong> {app.documentType}
+        </p>
+        <p>
+          <strong>Applicant:</strong> {app.applicant.firstName} {app.applicant.lastName}
+        </p>
+        <p>
+          <strong>National ID:</strong> {app.applicant.nationalId ?? "—"}
+        </p>
+        <p>
+          <strong>Phone:</strong> {app.applicant.contactNumber}
+        </p>
+        <p>
+          <strong>Approved:</strong>{" "}
+          {app.approvedDate ? format(new Date(app.approvedDate), "dd MMM yyyy") : "—"}
+        </p>
+        <p className="col-span-2">
+          <strong>Address:</strong> {app.applicant.address}
+        </p>
+        <p className="col-span-2">
+          <strong>Reason:</strong> {app.reason}
+        </p>
+        <p className="col-span-2">
+          <strong>Police Report:</strong> {app.policeReport.reportNumber} ·{" "}
+          {app.policeReport.station} · {app.policeReport.date}
+        </p>
       </div>
       <div className="mt-10 grid grid-cols-2 gap-10 text-xs">
         <div className="border-t border-black/40 pt-1">Issuing Officer Signature</div>
         <div className="border-t border-black/40 pt-1">Applicant Signature</div>
       </div>
-      <p className="mt-6 text-center text-[10px] uppercase tracking-widest text-[#0A3D91]">Registrar General's Office · Official Document</p>
+      <p className="mt-6 text-center text-[10px] uppercase tracking-widest text-[#0A3D91]">
+        Registrar General's Office · Official Document
+      </p>
     </div>
   );
 }
