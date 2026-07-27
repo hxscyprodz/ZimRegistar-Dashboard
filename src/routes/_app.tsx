@@ -26,11 +26,13 @@ function AppLayout() {
   }
 
   if (!user) {
-    return <Navigate to="/auth/login" />;
+    if (pathname !== "/auth/login") {
+      return <Navigate to="/auth/login" />;
+    }
   }
 
-  if (user.role === "Super Administrator" && (pathname === "/" || pathname === "/dashboard")) {
-    return <Navigate to="/super-admin" />;
+  if (user?.role === "Super Administrator" && pathname === "/dashboard") {
+    return <Navigate to="/super-admin" replace />;
   }
   return (
     <AppShell>
