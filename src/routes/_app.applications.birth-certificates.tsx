@@ -10,7 +10,6 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
 import { useApps, useUserStation, filterByStation } from "@/lib/store";
 import { format } from "date-fns";
-import type { BirthCertificateApp } from "@/lib/types";
 
 export const Route = createFileRoute("/_app/applications/birth-certificates")({
   head: () => ({ meta: [{ title: "Birth Certificate Applications" }] }),
@@ -42,11 +41,11 @@ function BirthCertList() {
         (status === "All" || a.status === status) &&
         (q === "" ||
           a.firstName.toLowerCase().includes(q.toLowerCase()) ||
-          a.applicationId.toLowerCase().includes(q.toLowerCase())),
+          a.trackingId.toLowerCase().includes(q.toLowerCase())),
     );
     filteredList = [...filteredList].sort((a, b) => {
-      if (sort === "date-desc") return +new Date(b.applicationDate) - +new Date(a.applicationDate);
-      if (sort === "date-asc") return +new Date(a.applicationDate) - +new Date(b.applicationDate);
+      if (sort === "date-desc") return +new Date(b.createdAt) - +new Date(a.createdAt);
+      if (sort === "date-asc") return +new Date(a.createdAt) - +new Date(b.createdAt);
       if (sort === "name-asc") return a.firstName.localeCompare(b.firstName);
       return b.firstName.localeCompare(a.firstName);
     });
@@ -100,31 +99,26 @@ function BirthCertList() {
                 <th className="px-5 py-3 font-medium">Applicant Name</th>
                 <th className="px-5 py-3 font-medium">Date Submitted</th>
                 <th className="px-5 py-3 font-medium">Place of Birth</th>
-                <th className="px-5 py-3 font-medium">Parents</th>
                 <th className="px-5 py-3 font-medium">Status</th>
                 <th className="px-5 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {paged.map((a) => (
-                <tr key={a._id} className="hover:bg-muted/30">
-                  <td className="px-5 py-3 font-mono text-xs">{a.applicationId}</td>
+                <tr key={a.id} className="hover:bg-muted/30">
+                  <td className="px-5 py-3 font-mono text-xs">{a.trackingId}</td>
                   <td className="px-5 py-3 font-medium">
                     {a.firstName} {a.surname}
                   </td>
                   <td className="px-5 py-3 text-muted-foreground">
-                    {format(new Date(a.applicationDate), "dd MMM yyyy")}
+                    {format(new Date(a.createdAt), "dd MMM yyyy")}
                   </td>
                   <td className="px-5 py-3">{a.placeOfBirth}</td>
-                  <td className="px-5 py-3 text-muted-foreground">
-                    {a.father.firstName} {a.father.surname} & {a.mother.firstName}{" "}
-                    {a.mother.surname}
-                  </td>
                   <td className="px-5 py-3">
                     <StatusBadge status={a.status} />
                   </td>
                   <td className="px-5 py-3 text-right">
-                    <Link to="/applications/birth-certificates/$id" params={{ id: a._id }}>
+                    <Link to="/applications/birth-certificates/$id" params={{ id: a.id }}>
                       <Button size="sm" variant="outline">
                         <Eye className="mr-1.5 h-4 w-4" /> View
                       </Button>
