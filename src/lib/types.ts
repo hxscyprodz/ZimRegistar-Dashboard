@@ -1,4 +1,4 @@
-export type AppStatus = "Pending" | "Approved" | "Rejected";
+export type AppStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type PrintStatus = "Not Printed" | "Printed";
 
 export interface District {
@@ -27,10 +27,10 @@ export interface Station {
 }
 
 export interface BaseApplication {
-  _id: string;
-  applicationId: string;
+  id: string;
+  trackingId: string;
   applicantName: string;
-  applicationDate: string;
+  createdAt: string;
   status: AppStatus;
   stationId: string;
   rejectionReason?: string;
@@ -49,7 +49,6 @@ export interface Parent {
 }
 
 export interface BirthCertificateApp extends BaseApplication {
-  id: string;
   applicationType: "Birth Certificate";
   firstName: string;
   surname: string;
@@ -78,8 +77,14 @@ export interface BirthDetails {
   dateOfBirth: string;
   sex: string;
 }
+
+export interface NationalAppResponse {
+  success: boolean;
+  data: NationalIdApp[];
+}
 export interface NationalIdApp extends BaseApplication {
-  _id: string;
+  firstName: string;
+  surname: string;
   applicationType: "National ID";
   nationalIdNumber: string;
   contactNumber: string;

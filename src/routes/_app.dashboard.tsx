@@ -58,23 +58,22 @@ function DashboardPage() {
       })),
       ...nationalId.map((a) => ({
         ...a,
-        applicantName: `${a.birthDetails.firstName} ${a.birthDetails.surname}`,
+        applicantName: `${a.firstName} ${a.surname}`,
         applicationType: "National ID",
       })),
-      ...recovery.map((a) => ({ ...a, applicationType: "Document Recovery" })),
     ],
     [birth, nationalId, recovery],
   );
 
   const total = all.length;
-  const pending = all.filter((a) => a.status === "Pending").length;
-  const approved = all.filter((a) => a.status === "Approved").length;
-  const rejected = all.filter((a) => a.status === "Rejected").length;
+  const pending = all.filter((a) => a.status === "PENDING").length;
+  const approved = all.filter((a) => a.status === "APPROVED").length;
+  const rejected = all.filter((a) => a.status === "REJECTED").length;
 
   const monthly = useMemo(() => {
     const map = new Map<string, number>();
     for (const a of all) {
-      const k = format(new Date(a.applicationDate), "MMM");
+      const k = format(new Date(a.createdAt), "MMM");
       map.set(k, (map.get(k) ?? 0) + 1);
     }
     return [...map.entries()].map(([month, count]) => ({ month, count })).reverse();
@@ -92,7 +91,7 @@ function DashboardPage() {
       : [{ name: "Approval Rate", value: Math.round((approved / total) * 100), fill: "#10b981" }];
 
   const recent = [...all]
-    .sort((a, b) => +new Date(b.applicationDate) - +new Date(a.applicationDate))
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .slice(0, 6);
 
   return (
@@ -266,12 +265,12 @@ function DashboardPage() {
                       ? "/applications/national-id/$id"
                       : "/applications/document-recovery/$id";
                 return (
-                  <tr key={a._id} className="hover:bg-muted/30">
-                    <td className="px-5 py-3 font-mono text-xs">{a.applicationId}</td>
+                  <tr key={a.id} className="hover:bg-muted/30">
+                    <td className="px-5 py-3 font-mono text-xs">{a.trackingId}</td>
                     <td className="px-5 py-3 font-medium">{a.applicantName}</td>
                     <td className="px-5 py-3 text-muted-foreground">{a.applicationType}</td>
                     <td className="px-5 py-3 text-muted-foreground">
-                      {format(new Date(a.applicationDate), "dd MMM yyyy")}
+                      {format(new Date(a.createdAt), "dd MMM yyyy")}
                     </td>
                     <td className="px-5 py-3">
                       <StatusBadge status={a.status} />
@@ -279,7 +278,7 @@ function DashboardPage() {
                     <td className="px-5 py-3 text-right">
                       <Link
                         to={path}
-                        params={{ id: a._id }}
+                        params={{ id: a.id }}
                         className="text-gov hover:underline dark:text-primary"
                       >
                         View

@@ -11,7 +11,7 @@ import type {
 } from "./types";
 import { seedBirth, seedNationalId, seedRecovery } from "./mockData";
 
-export type Role = "Super Administrator" | "Administrator" | "Supervisor" | "Registrar Officer";
+export type Role = "SUPER_ADMIN" | "ADMIN" | "REGISTRAR_OFFICER";
 
 interface AuthUser {
   id: string;
@@ -77,7 +77,7 @@ export const useAuth = create<AuthState>()((set) => ({
 export function useUserStation(): string | null {
   const user = useAuth((s) => s.user);
   if (!user) return null;
-  if (user.role === "Super Administrator") return null;
+  if (user.role === "SUPER_ADMIN") return null;
   return user.stationId;
 }
 
