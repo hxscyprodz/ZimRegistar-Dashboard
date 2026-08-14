@@ -1,6 +1,7 @@
 import type {
   BirthCertificateApp,
   BirthCertificateResponse,
+  NationalAppResponse,
   NationalIdApp,
   Province,
   RecoveryApp,
@@ -39,7 +40,7 @@ export async function request<T>(
 /* ------------------------------------------------------------------ */
 
 /** POST /auth/login  →  { token, user } */
-export function loginApi(phone: string, password: string) {
+export function loginApi(email: string, password: string) {
   // The user object from the API should match the AuthUser interface in store.ts
   type LoginResponse = {
     token: string;
@@ -47,18 +48,18 @@ export function loginApi(phone: string, password: string) {
       id: string;
       employeeNumber: string;
       name: string;
-      role: "Super Administrator" | "Administrator" | "Supervisor" | "Registrar Officer";
+      role: "SUPER_ADMIN" | "ADMIN" | "REGISTRAR_OFFICER";
       stationId: string;
     };
   };
-  return request<LoginResponse>("/auth/login", { method: "POST", body: { phone, password } });
+  return request<LoginResponse>("/auth/login", { method: "POST", body: { email, password } });
 }
 
 /** GET /auth/profile  →  user */
 export function profileApi() {
   return request<{
     success: true;
-    user: { employeeNumber: string; name: string; role: Role; stationId: string };
+    user: { id: string; employeeNumber: string; name: string; role: Role; stationId: string };
   }>("/auth/profile");
 }
 
@@ -149,9 +150,9 @@ export type AppKind = "birth" | "nationalId" | "recovery";
 
 const endpointFor = (kind: AppKind) =>
   kind === "birth"
-    ? "/applications/birth-certificates"
+    ? "/birth-applications"
     : kind === "nationalId"
-      ? "/applications/national-id"
+      ? "/id-applications"
       : "/applications/document-recovery";
 
 /** GET /applications/birth-certificates */
@@ -160,8 +161,8 @@ export async function listBirthApi(): Promise<BirthCertificateResponse> {
 }
 
 /** GET /applications/national-id */
-export async function listNationalIdApi(): Promise<{ success: true; data: NationalIdApp[] }> {
-  return request<{ success: true; data: NationalIdApp[] }>(endpointFor("nationalId"));
+export async function listNationalIdApi(): Promise<NationalAppResponse> {
+  return request<NationalAppResponse>(endpointFor("nationalId"));
 }
 
 /** GET /applications/document-recovery */
