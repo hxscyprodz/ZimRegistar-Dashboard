@@ -97,6 +97,7 @@ function BirthCertList() {
               <tr>
                 <th className="px-5 py-3 font-medium">Application #</th>
                 <th className="px-5 py-3 font-medium">Applicant Name</th>
+                <th className="px-5 py-3 font-medium">Date Of Birth</th>
                 <th className="px-5 py-3 font-medium">Date Submitted</th>
                 <th className="px-5 py-3 font-medium">Place of Birth</th>
                 <th className="px-5 py-3 font-medium">Status</th>
@@ -109,6 +110,9 @@ function BirthCertList() {
                   <td className="px-5 py-3 font-mono text-xs">{a.trackingId}</td>
                   <td className="px-5 py-3 font-medium">
                     {a.firstName} {a.surname}
+                  </td>
+                  <td className="px-5 py-3 font-medium text-muted-foreground">
+                    {format(new Date(a.dateOfBirth), "dd MMM yyyy")}
                   </td>
                   <td className="px-5 py-3 text-muted-foreground">
                     {format(new Date(a.createdAt), "dd MMM yyyy")}
