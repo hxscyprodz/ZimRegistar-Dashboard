@@ -25,6 +25,7 @@ export const Route = createFileRoute("/_app/applications/birth-certificates/$id"
   head: () => ({ meta: [{ title: "Birth Certificate Application" }] }),
   loader: async ({ params: { id } }) => {
     const res = await getApplicationApi("birth", id);
+    console.log(res);
     return res.data as BirthCertificateApp;
   },
   component: Page,
@@ -41,7 +42,7 @@ function Page() {
   const app = Route.useLoaderData();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const user = useAuth((s) => s.user);
-  const isSuper = user?.role === "Super Administrator";
+  const isSuper = user?.role === "SUPER_ADMIN";
   const isOtherStation = user && !isSuper && app && user.stationId !== app.stationId;
   const [approveOpen, setApproveOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
@@ -93,8 +94,8 @@ function Page() {
         <ArrowLeft className="h-4 w-4" /> Back to applications
       </Link>
       <PageHeader
-        title={`Application ${app.applicationId}`}
-        description={`Submitted on ${format(new Date(app.applicationDate), "dd MMMM yyyy")}`}
+        title={`Application ${app.trackingId}`}
+        description={`Submitted on ${format(new Date(app.createdAt), "dd MMMM yyyy")}`}
         actions={<StatusBadge status={app.status} />}
       />
 
@@ -104,10 +105,7 @@ function Page() {
             <div className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
               <InfoRow label="First Name" value={app.firstName} />
               <InfoRow label="Last Name" value={app.surname} />
-              <InfoRow
-                label="Date of Birth"
-                value={format(new Date(app.dateOfBirth), "dd MMM yyyy")}
-              />
+              <InfoRow label="Date of Birth" value={app.dateOfBirth} />
               <InfoRow label="Gender" value={app.sex} />
               <InfoRow label="Hospital of Birth" value={app.hospitalOfBirth} />
               <InfoRow label="City / Town of Birth" value={app.placeOfBirth} />
@@ -140,7 +138,7 @@ function Page() {
             </Card>
           ) : null}
 
-          {app.status === "Rejected" && app.rejectionReason ? (
+          {app.status === "REJECTED" && app.rejectionReason ? (
             <Card title="Rejection Details">
               <p className="text-sm">
                 <strong>Reason:</strong> {app.rejectionReason}
@@ -160,7 +158,7 @@ function Page() {
             <div className="mt-4 space-y-2">
               <Button
                 className="w-full bg-emerald-600 text-white hover:bg-emerald-600/90"
-                disabled={app.status !== "Pending" || isSuper}
+                disabled={app.status !== "PENDING" || isSuper}
                 onClick={() => setApproveOpen(true)}
               >
                 <Check className="mr-2 h-4 w-4" /> Approve Application
@@ -168,7 +166,7 @@ function Page() {
               <Button
                 variant="destructive"
                 className="w-full"
-                disabled={app.status !== "Pending" || isSuper}
+                disabled={app.status !== "PENDING" || isSuper}
                 onClick={() => setRejectOpen(true)}
               >
                 <X className="mr-2 h-4 w-4" /> Reject Application
@@ -188,7 +186,7 @@ function Page() {
               <Button
                 variant="outline"
                 className="w-full"
-                disabled={app.status !== "Approved"}
+                disabled={app.status !== "APPROVED"}
                 onClick={() => setPrintOpen(true)}
               >
                 <Printer className="mr-2 h-4 w-4" /> Print Birth Certificate
@@ -199,12 +197,10 @@ function Page() {
             </div>
           </div>
 
-          {app.status === "Approved" ? (
+          {app.status === "APPROVED" ? (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
               Approved by {approverName} on
-              {app.applicationDate
-                ? ` ${format(new Date(app.applicationDate), "dd MMM yyyy")}`
-                : ""}
+              {app.createdAt ? ` ${format(new Date(app.createdAt), "dd MMM yyyy")}` : ""}
             </div>
           ) : null}
         </aside>
@@ -218,7 +214,7 @@ function Page() {
         confirmLabel="Yes, approve"
         tone="success"
         onConfirm={async () => {
-          await approveApplicationApi("birth", app._id, user?.name ?? "Officer");
+          await approveApplicationApi("birth", app.id, user?.name ?? "Officer");
           toast.success("Application approved");
           router.invalidate();
         }}
@@ -227,7 +223,7 @@ function Page() {
         open={rejectOpen}
         onOpenChange={setRejectOpen}
         onConfirm={async (reason) => {
-          await rejectApplicationApi("birth", app._id, reason);
+          await rejectApplicationApi("birth", app.id, reason);
           setRejectOpen(false);
           toast.success("Application rejected");
           router.invalidate();
@@ -288,10 +284,10 @@ function SummaryDoc({ app }: { app: import("@/lib/types").BirthCertificateApp })
   return (
     <div className="mx-auto w-full max-w-3xl bg-white p-8 text-sm text-black">
       <h2 className="font-display text-xl font-bold text-[#0A3D91]">
-        Application Summary — {app.applicationId}
+        Application Summary — {app.trackingId}
       </h2>
       <p className="text-xs text-black/60">
-        Birth Certificate · Submitted {format(new Date(app.applicationDate), "dd MMM yyyy")}
+        Birth Certificate · Submitted {format(new Date(app.createdAt), "dd MMM yyyy")}
       </p>
       <hr className="my-3 border-[#0A3D91]/30" />
       <h3 className="font-bold">Child</h3>
