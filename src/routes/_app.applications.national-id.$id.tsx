@@ -25,6 +25,7 @@ import type { NationalIdApp } from "@/lib/types";
 export const Route = createFileRoute("/_app/applications/national-id/$id")({
   head: () => ({ meta: [{ title: "National ID Application" }] }),
   loader: async ({ params: { id } }) => {
+    console.log(id);
     const res = await getApplicationApi("nationalId", id);
     return res.data as NationalIdApp;
   },
@@ -43,7 +44,7 @@ function Page() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const setNationalId = useApps((s) => s.setNationalId);
   const user = useAuth((s) => s.user);
-  const isSuper = user?.role === "Super Administrator";
+  const isSuper = user?.role === "SUPER_ADMIN";
   const isOtherStation = user && !isSuper && app && user.stationId !== app.stationId;
   const [approveOpen, setApproveOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
@@ -89,8 +90,8 @@ function Page() {
         <ArrowLeft className="h-4 w-4" /> Back
       </Link>
       <PageHeader
-        title={`Application ${app.applicationId}`}
-        description={`Submitted on ${format(new Date(app.applicationDate), "dd MMMM yyyy")}`}
+        title={`Application ${app.trackingId}`}
+        description={`Submitted on ${format(new Date(app.createdAt), "dd MMMM yyyy")}`}
         actions={<StatusBadge status={app.status} />}
       />
 
@@ -99,15 +100,15 @@ function Page() {
           <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <h3 className="mb-2 font-display text-base font-bold">Applicant Information</h3>
             <div className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
-              <InfoRow label="First Name" value={app.birthDetails.firstName} />
-              <InfoRow label="Last Name" value={app.birthDetails.surname} />
+              <InfoRow label="First Name" value={app.firstName} />
+              <InfoRow label="Last Name" value={app.surname} />
               <InfoRow
                 label="Date of Birth"
-                value={format(new Date(app.birthDetails.dateOfBirth), "dd MMM yyyy")}
+                value={format(new Date(app.dateOfBirth), "dd MMM yyyy")}
               />
-              <InfoRow label="Gender" value={app.birthDetails.sex} />
+              <InfoRow label="Gender" value={app.sex} />
               <div className="sm:col-span-2">
-                <InfoRow label="Address" value={app.address} />
+                <InfoRow label="Address" value={`${app.address}, ${app.placeOfBirth}`} />
               </div>
             </div>
           </div>
@@ -115,11 +116,11 @@ function Page() {
           <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <h3 className="mb-2 font-display text-base font-bold">Supporting Documents</h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <DocumentCard label="Birth Certificate" src={app.documents.birthCertificate} />
+              <DocumentCard label="Birth Certificate" src={app.nationalIdNumber} />
             </div>
           </div>
 
-          {app.status === "Rejected" && app.rejectionReason ? (
+          {app.status === "REJECTED" && app.rejectionReason ? (
             <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
               <h3 className="mb-1 font-display text-base font-bold">Rejection Details</h3>
               <p className="text-sm">
@@ -139,7 +140,7 @@ function Page() {
             <div className="mt-3 space-y-2">
               <Button
                 className="w-full bg-emerald-600 text-white hover:bg-emerald-600/90"
-                disabled={app.status !== "Pending" || isSuper}
+                disabled={app.status !== "PENDING" || isSuper}
                 onClick={() => setApproveOpen(true)}
               >
                 <Check className="mr-2 h-4 w-4" /> Approve
@@ -147,7 +148,7 @@ function Page() {
               <Button
                 variant="destructive"
                 className="w-full"
-                disabled={app.status !== "Pending" || isSuper}
+                disabled={app.status !== "REJECTED" || isSuper}
                 onClick={() => setRejectOpen(true)}
               >
                 <X className="mr-2 h-4 w-4" /> Reject
@@ -155,7 +156,7 @@ function Page() {
               <Button
                 variant="outline"
                 className="w-full"
-                disabled={app.status !== "Approved"}
+                disabled={app.status !== "APPROVED"}
                 onClick={() => setPrintOpen(true)}
               >
                 <Printer className="mr-2 h-4 w-4" /> Print ID Card
@@ -166,12 +167,10 @@ function Page() {
             </div>
           </div>
 
-          {app.status === "Approved" ? (
+          {app.status === "APPROVED" ? (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
               Approved by {approverName} on
-              {app.applicationDate
-                ? ` ${format(new Date(app.applicationDate), "dd MMM yyyy")}`
-                : ""}
+              {app.createdAt ? ` ${format(new Date(app.createdAt), "dd MMM yyyy")}` : ""}
             </div>
           ) : null}
         </aside>
@@ -184,7 +183,7 @@ function Page() {
         tone="success"
         confirmLabel="Yes, approve"
         onConfirm={async () => {
-          await approveApplicationApi("nationalId", app._id, user?.id ?? "Officer");
+          await approveApplicationApi("nationalId", app.id, user?.id ?? "Officer");
           toast.success("Application approved.");
           router.invalidate(); // Refreshes current page loader
           listNationalIdApi().then((res) => setNationalId(res.data)); // Refreshes list data in store
@@ -195,7 +194,7 @@ function Page() {
         onOpenChange={setRejectOpen}
         onConfirm={async (reason) => {
           if (!user) return toast.error("You must be logged in.");
-          await rejectApplicationApi("nationalId", app._id, reason);
+          await rejectApplicationApi("nationalId", app.id, reason);
           setRejectOpen(false);
           toast.success("Application rejected.");
           router.invalidate(); // Refreshes current page loader
@@ -234,22 +233,21 @@ function Page() {
           <div className="max-h-[75vh] overflow-auto bg-muted p-6">
             <div className="mx-auto max-w-2xl bg-white p-8 text-sm text-black">
               <h2 className="font-display text-xl font-bold text-[#0A3D91]">
-                National ID Application — {app.applicationId}
+                National ID Application — {app.trackingId}
               </h2>
               <hr className="my-3 border-[#0A3D91]/30" />
               <p>
-                <strong>Name:</strong> {app.birthDetails.firstName} {app.birthDetails.surname}
+                <strong>Name:</strong> {app.firstName} {app.surname}
               </p>
               <p>
-                <strong>DOB:</strong>{" "}
-                {format(new Date(app.birthDetails.dateOfBirth), "dd MMM yyyy")} ·{" "}
-                <strong>Gender:</strong> {app.birthDetails.sex}
+                <strong>DOB:</strong> {format(new Date(app.dateOfBirth), "dd MMM yyyy")} ·{" "}
+                <strong>Gender:</strong> {app.sex}
               </p>
               <p>
                 <strong>National ID:</strong> {app.nationalIdNumber}
               </p>
               <p>
-                <strong>Address:</strong> {app.address}
+                <strong>Address:</strong> {`${app.address}, ${app.placeOfBirth}`}
               </p>
               <p className="mt-3">
                 <strong>Status:</strong> {app.status}

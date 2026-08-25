@@ -37,17 +37,14 @@ function NIDList() {
       (a) =>
         (status === "All" || a.status === status) &&
         (q === "" ||
-          `${a.birthDetails.firstName} ${a.birthDetails.surname}`
-            .toLowerCase()
-            .includes(q.toLowerCase()) ||
-          a.applicationId.toString().toLowerCase().includes(q.toLowerCase())),
+          `${a.firstName} ${a.surname}`.toLowerCase().includes(q.toLowerCase()) ||
+          a.trackingId.toString().toLowerCase().includes(q.toLowerCase())),
     );
     r = [...r].sort((a, b) => {
-      if (sort === "date-desc") return +new Date(b.applicationDate) - +new Date(a.applicationDate);
-      if (sort === "date-asc") return +new Date(a.applicationDate) - +new Date(b.applicationDate);
-      if (sort === "name-asc")
-        return a.birthDetails.firstName.localeCompare(b.birthDetails.firstName);
-      return b.birthDetails.firstName.localeCompare(a.birthDetails.firstName);
+      if (sort === "date-desc") return +new Date(b.createdAt) - +new Date(a.createdAt);
+      if (sort === "date-asc") return +new Date(a.createdAt) - +new Date(b.createdAt);
+      if (sort === "name-asc") return a.firstName.localeCompare(b.firstName);
+      return b.firstName.localeCompare(a.firstName);
     });
     return r;
   }, [list, q, status, sort]);
@@ -97,7 +94,6 @@ function NIDList() {
                 <th className="px-5 py-3 font-medium">Last Name</th>
                 <th className="px-5 py-3 font-medium">Date of Birth</th>
                 <th className="px-5 py-3 font-medium">Gender</th>
-                <th className="px-5 py-3 font-medium">Address</th>
                 <th className="px-5 py-3 font-medium">Submitted</th>
                 <th className="px-5 py-3 font-medium">Status</th>
                 <th className="px-5 py-3 text-right font-medium">Actions</th>
@@ -105,28 +101,20 @@ function NIDList() {
             </thead>
             <tbody className="divide-y divide-border">
               {paged.map((a) => (
-                <tr key={a._id} className="hover:bg-muted/30">
-                  <td className="px-5 py-3 font-mono text-xs">{a.applicationId}</td>
-                  <td className="px-5 py-3 font-medium">{a.birthDetails.firstName}</td>
-                  <td className="px-5 py-3 font-medium">{a.birthDetails.surname}</td>
-                  <td className="px-5 py-3">
-                    {format(new Date(a.birthDetails.dateOfBirth), "dd MMM yyyy")}
-                  </td>
-                  <td className="px-5 py-3">{a.birthDetails.sex}</td>
-                  <td
-                    className="px-5 py-3 max-w-[18ch] truncate text-muted-foreground"
-                    title={a.nationalIdNumber}
-                  >
-                    {a.nationalIdNumber}
-                  </td>
+                <tr key={a.id} className="hover:bg-muted/30">
+                  <td className="px-5 py-3 font-mono text-xs">{a.trackingId}</td>
+                  <td className="px-5 py-3 font-medium">{a.firstName}</td>
+                  <td className="px-5 py-3 font-medium">{a.surname}</td>
+                  <td className="px-5 py-3">{format(new Date("2006-10-02"), "dd MMM yyyy")}</td>
+                  <td className="px-5 py-3">{"Male"}</td>
                   <td className="px-5 py-3 text-muted-foreground">
-                    {format(new Date(a.applicationDate), "dd MMM yyyy")}
+                    {format(new Date(a.createdAt), "dd MMM yyyy")}
                   </td>
                   <td className="px-5 py-3">
                     <StatusBadge status={a.status} />
                   </td>
                   <td className="px-5 py-3 text-right">
-                    <Link to="/applications/national-id/$id" params={{ id: a._id }}>
+                    <Link to="/applications/national-id/$id" params={{ id: a.id }}>
                       <Button size="sm" variant="outline">
                         <Eye className="mr-1.5 h-4 w-4" /> View
                       </Button>
