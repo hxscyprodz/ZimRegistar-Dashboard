@@ -36,7 +36,7 @@ export interface BaseApplication {
   rejectionReason?: string;
   rejectedBy?: string;
   rejectedDate?: string;
-  approvedDate?: string;
+  approvedAt?: string;
   approvedBy?: string;
   printStatus?: PrintStatus;
   printedAt?: string;
@@ -71,13 +71,6 @@ export interface BirthCertificateResponse {
   data: BirthCertificateApp[];
 }
 
-export interface BirthDetails {
-  firstName: string;
-  surname: string;
-  dateOfBirth: string;
-  sex: string;
-}
-
 export interface NationalAppResponse {
   success: boolean;
   data: NationalIdApp[];
@@ -88,7 +81,10 @@ export interface NationalIdApp extends BaseApplication {
   applicationType: "National ID";
   nationalIdNumber: string;
   contactNumber: string;
-  birthDetails: BirthDetails;
+  dateOfBirth: Date;
+  address: string;
+  placeOfBirth: string;
+  sex: string;
   documents: {
     birthCertificate: string;
   };
